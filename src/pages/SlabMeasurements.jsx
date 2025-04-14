@@ -1,28 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate to navigate to another page
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 export default function SlabMeasurements() {
   const [measurements, setMeasurements] = useState([
     { length: '', breadth: '', total: '', unit: 'ft', totalUnit: 'ft' },
   ]);
-  const [totalSum, setTotalSum] = useState(0);
-  const [savedSheets, setSavedSheets] = useState([]);
-  const navigate = useNavigate();  // Initialize navigate
 
-  // Convert any unit to feet for calculation purposes
+  const [totalSum, setTotalSum] = useState(0);
+  const navigate = useNavigate();
+
   const convertToFeet = (value, unit) => {
     if (!value) return 0;
-
     switch (unit) {
       case 'm': return value * 3.28084;
       case 'in': return value / 12;
-      case 'ft': return value;
       case 'cm': return value / 30.48;
+      case 'ft': return value;
       default: return value;
     }
   };
 
-  // Convert feet to the selected total unit
   const convertTotalUnit = (value, totalUnit) => {
     switch (totalUnit) {
       case 'm': return value / 10.7639;
@@ -33,16 +32,12 @@ export default function SlabMeasurements() {
     }
   };
 
-  // Calculate total based on the selected measuring units
   const calculateTotal = (length, breadth, unit) => {
-    let total = 0;
     const lengthInFeet = convertToFeet(length, unit);
     const breadthInFeet = convertToFeet(breadth, unit);
-    total = lengthInFeet * breadthInFeet;
-    return total;
+    return lengthInFeet * breadthInFeet;
   };
 
-  // Update total when length, breadth, or measuring units change
   useEffect(() => {
     let sum = 0;
     const newMeasurements = measurements.map((measurement) => {
@@ -82,10 +77,10 @@ export default function SlabMeasurements() {
     setMeasurements(newMeasurements);
   };
 
-  // Automatically add a new row when the last one is filled
+  // Auto add new row
   useEffect(() => {
-    if (measurements[measurements.length - 1].length !== '' &&
-        measurements[measurements.length - 1].breadth !== '') {
+    const lastRow = measurements[measurements.length - 1];
+    if (lastRow.length !== '' && lastRow.breadth !== '') {
       setMeasurements([
         ...measurements,
         { length: '', breadth: '', total: '', unit: 'ft', totalUnit: 'ft' },
@@ -93,11 +88,20 @@ export default function SlabMeasurements() {
     }
   }, [measurements]);
 
-  // Save button functionality
-  const handleSave = () => {
-    setSavedSheets([...savedSheets, ...measurements]);
-    // Redirect to the Sheets List page after saving
-    navigate('/sheets', { state: { savedSheets: [...savedSheets, ...measurements] } });
+  // 🔥 SAVE to Firebase
+  const handleSave = async () => {
+    try {
+      await addDoc(collection(db, 'sheets'), {
+        measurements: measurements.filter(m => m.length && m.breadth),
+        totalSum,
+        createdAt: new Date()
+      });
+      alert('Sheet saved!');
+      navigate('/SheetsList'); // navigate to your SheetsList page
+    } catch (error) {
+      console.error('Error saving sheet:', error);
+      alert('Failed to save. Please try again.');
+    }
   };
 
   return (
@@ -187,17 +191,15 @@ export default function SlabMeasurements() {
         </tbody>
       </table>
 
-      <div className="mt-4 text-right">
+      <div className="mt-4 flex justify-between items-center">
         <strong>Total Sum: {totalSum.toFixed(2)} ft²</strong>
+        <button
+          onClick={handleSave}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Save
+        </button>
       </div>
-
-      {/* Save button */}
-      <button
-        onClick={handleSave}
-        className="bg-blue-600 text-white px-6 py-2 rounded mt-4"
-      >
-        Save
-      </button>
     </div>
   );
 }
