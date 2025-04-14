@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';  // Import useNavigate to navigate to another page
 
 export default function SlabMeasurements() {
   const [measurements, setMeasurements] = useState([
     { length: '', breadth: '', total: '', unit: 'ft', totalUnit: 'ft' },
   ]);
-
   const [totalSum, setTotalSum] = useState(0);
+  const [savedSheets, setSavedSheets] = useState([]);
+  const navigate = useNavigate();  // Initialize navigate
 
   // Convert any unit to feet for calculation purposes
   const convertToFeet = (value, unit) => {
     if (!value) return 0;
 
     switch (unit) {
-      case 'm': return value * 3.28084; // 1 meter = 3.28084 feet
-      case 'in': return value / 12; // 1 inch = 1/12 feet
-      case 'ft': return value; // Already in feet
-      case 'cm': return value / 30.48; // 1 cm = 1/30.48 feet
+      case 'm': return value * 3.28084;
+      case 'in': return value / 12;
+      case 'ft': return value;
+      case 'cm': return value / 30.48;
       default: return value;
     }
   };
@@ -23,16 +25,11 @@ export default function SlabMeasurements() {
   // Convert feet to the selected total unit
   const convertTotalUnit = (value, totalUnit) => {
     switch (totalUnit) {
-      case 'm':
-        return value / 10.7639; // 1 ft² = 0.092903 m²
-      case 'cm':
-        return value * 929.0304; // 1 ft² = 929.0304 cm²
-      case 'in':
-        return value * 144; // 1 ft² = 144 in²
-      case 'ft':
-        return value; // Already in ft²
-      default:
-        return value;
+      case 'm': return value / 10.7639;
+      case 'cm': return value * 929.0304;
+      case 'in': return value * 144;
+      case 'ft': return value;
+      default: return value;
     }
   };
 
@@ -58,7 +55,6 @@ export default function SlabMeasurements() {
       };
     });
 
-    // Update total sum
     newMeasurements.forEach((measurement) => {
       const total = parseFloat(measurement.total);
       sum += total;
@@ -96,6 +92,13 @@ export default function SlabMeasurements() {
       ]);
     }
   }, [measurements]);
+
+  // Save button functionality
+  const handleSave = () => {
+    setSavedSheets([...savedSheets, ...measurements]);
+    // Redirect to the Sheets List page after saving
+    navigate('/sheets', { state: { savedSheets: [...savedSheets, ...measurements] } });
+  };
 
   return (
     <div className="p-6">
@@ -187,6 +190,14 @@ export default function SlabMeasurements() {
       <div className="mt-4 text-right">
         <strong>Total Sum: {totalSum.toFixed(2)} ft²</strong>
       </div>
+
+      {/* Save button */}
+      <button
+        onClick={handleSave}
+        className="bg-blue-600 text-white px-6 py-2 rounded mt-4"
+      >
+        Save
+      </button>
     </div>
   );
 }
