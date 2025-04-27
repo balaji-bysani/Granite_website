@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, addDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import Button from "@mui/material/Button";
+import { IconButton } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function SlabMeasurements() {
   const [measurements, setMeasurements] = useState([
-    { length: '', breadth: '', total: '', unit: 'ft', totalUnit: 'ft' },
+    { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft" },
   ]);
 
   const [totalSum, setTotalSum] = useState(0);
@@ -14,21 +17,31 @@ export default function SlabMeasurements() {
   const convertToFeet = (value, unit) => {
     if (!value) return 0;
     switch (unit) {
-      case 'm': return value * 3.28084;
-      case 'in': return value / 12;
-      case 'cm': return value / 30.48;
-      case 'ft': return value;
-      default: return value;
+      case "m":
+        return value * 3.28084;
+      case "in":
+        return value / 12;
+      case "cm":
+        return value / 30.48;
+      case "ft":
+        return value;
+      default:
+        return value;
     }
   };
 
   const convertTotalUnit = (value, totalUnit) => {
     switch (totalUnit) {
-      case 'm': return value / 10.7639;
-      case 'cm': return value * 929.0304;
-      case 'in': return value * 144;
-      case 'ft': return value;
-      default: return value;
+      case "m":
+        return value / 10.7639;
+      case "cm":
+        return value * 929.0304;
+      case "in":
+        return value * 144;
+      case "ft":
+        return value;
+      default:
+        return value;
     }
   };
 
@@ -80,10 +93,10 @@ export default function SlabMeasurements() {
   // Auto add new row
   useEffect(() => {
     const lastRow = measurements[measurements.length - 1];
-    if (lastRow.length !== '' && lastRow.breadth !== '') {
+    if (lastRow.length !== "" && lastRow.breadth !== "") {
       setMeasurements([
         ...measurements,
-        { length: '', breadth: '', total: '', unit: 'ft', totalUnit: 'ft' },
+        { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft" },
       ]);
     }
   }, [measurements]);
@@ -91,16 +104,16 @@ export default function SlabMeasurements() {
   // 🔥 SAVE to Firebase
   const handleSave = async () => {
     try {
-      await addDoc(collection(db, 'sheets'), {
-        measurements: measurements.filter(m => m.length && m.breadth),
+      await addDoc(collection(db, "sheets"), {
+        measurements: measurements.filter((m) => m.length && m.breadth),
         totalSum,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
-      alert('Sheet saved!');
-      navigate('/SheetsList'); // navigate to your SheetsList page
+      alert("Sheet saved!");
+      navigate("/SheetsList"); // navigate to your SheetsList page
     } catch (error) {
-      console.error('Error saving sheet:', error);
-      alert('Failed to save. Please try again.');
+      console.error("Error saving sheet:", error);
+      alert("Failed to save. Please try again.");
     }
   };
 
@@ -124,13 +137,13 @@ export default function SlabMeasurements() {
                 <input
                   type="number"
                   value={measurement.length}
-                  onChange={(e) => handleChange(e, index, 'length')}
+                  onChange={(e) => handleChange(e, index, "length")}
                   className="w-full px-2 py-1 border rounded"
                   placeholder="Length"
                 />
                 <select
                   value={measurement.unit}
-                  onChange={(e) => handleUnitChange(e, index, 'unit')}
+                  onChange={(e) => handleUnitChange(e, index, "unit")}
                   className="mt-1 p-1 border rounded w-full"
                 >
                   <option value="cm">cm</option>
@@ -143,13 +156,13 @@ export default function SlabMeasurements() {
                 <input
                   type="number"
                   value={measurement.breadth}
-                  onChange={(e) => handleChange(e, index, 'breadth')}
+                  onChange={(e) => handleChange(e, index, "breadth")}
                   className="w-full px-2 py-1 border rounded"
                   placeholder="Breadth"
                 />
                 <select
                   value={measurement.unit}
-                  onChange={(e) => handleUnitChange(e, index, 'unit')}
+                  onChange={(e) => handleUnitChange(e, index, "unit")}
                   className="mt-1 p-1 border rounded w-full"
                 >
                   <option value="cm">cm</option>
@@ -168,7 +181,7 @@ export default function SlabMeasurements() {
                 />
                 <select
                   value={measurement.totalUnit}
-                  onChange={(e) => handleUnitChange(e, index, 'totalUnit')}
+                  onChange={(e) => handleUnitChange(e, index, "totalUnit")}
                   className="mt-1 p-1 border rounded w-full"
                 >
                   <option value="ft">ft²</option>
@@ -178,13 +191,12 @@ export default function SlabMeasurements() {
                 </select>
               </td>
               <td className="border p-2">
-                <button
-                  type="button"
+                <Button
                   onClick={() => handleDeleteRow(index)}
-                  className="bg-red-600 text-white px-3 py-1 rounded"
+                  sx={{ color: "red" }}
                 >
-                  Delete
-                </button>
+                  <DeleteIcon />
+                </Button>
               </td>
             </tr>
           ))}
@@ -193,12 +205,21 @@ export default function SlabMeasurements() {
 
       <div className="mt-4 flex justify-between items-center">
         <strong>Total Sum: {totalSum.toFixed(2)} ft²</strong>
-        <button
+
+        <Button
           onClick={handleSave}
-          className="bg-green-600 text-white px-4 py-2 rounded"
+          variant="contained"
+          component="label"
+          color="success"
+          sx={{
+            color: "white",
+            "&:hover": { backgroundColor: "#333" , color: "white" },
+            textTransform: "none",
+            borderRadius: 2,
+          }}
         >
           Save
-        </button>
+        </Button>
       </div>
     </div>
   );
