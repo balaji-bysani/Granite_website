@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
 
 export default function CustomerDetails() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    graniteName: '',
-    partyName: '',
-    date: '',
+    graniteName: "",
+    partyName: "",
+    date: "",
     image: null,
-    vehicleNumber: '',
+    vehicleNumber: "",
   });
 
   const handleChange = (e) => {
@@ -20,23 +26,131 @@ export default function CustomerDetails() {
   };
 
   const handleNext = () => {
-    localStorage.setItem('customerDetails', JSON.stringify(formData));
-    navigate('/granite/slab-measurements');
+    localStorage.setItem("customerDetails", JSON.stringify(formData));
+    navigate("/granite/slab-measurements");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center">Customer Details</h2>
-        <div className="space-y-4">
-          <input type="text" name="graniteName" placeholder="Granite Name" value={formData.graniteName} onChange={handleChange} className="w-full px-4 py-2 border rounded" required />
-          <input type="text" name="partyName" placeholder="Party Name" value={formData.partyName} onChange={handleChange} className="w-full px-4 py-2 border rounded" required />
-          <input type="date" name="date" value={formData.date} onChange={handleChange} className="w-full px-4 py-2 border rounded" required />
-          <input type="file" name="image" accept="image/*" onChange={handleChange} className="w-full px-4 py-2 border rounded" />
-          <input type="text" name="vehicleNumber" placeholder="Truck/Vehicle Number (optional)" value={formData.vehicleNumber} onChange={handleChange} className="w-full px-4 py-2 border rounded" />
-          <button onClick={handleNext} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Next</button>
-        </div>
-      </div>
-    </div>
+    <Box
+      sx={{
+        height: "100vh",
+        backgroundColor: "black",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Card
+        sx={{
+          width: 400,
+          minHeight: 480,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          px: 3,
+          py: 2,
+          borderRadius: 5,
+          boxShadow: 5,
+        }}
+      >
+        <CardContent>
+          <Typography
+            variant="h5"
+            align="center"
+            fontFamily={"Times New Roman"}
+            gutterBottom
+          >
+            Please enter the customer details:
+          </Typography>
+
+          <Box
+            component="form"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            <TextField
+              fullWidth
+              name="graniteName"
+              label="Granite Name"
+              value={formData.graniteName}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              fullWidth
+              name="partyName"
+              label="Party Name"
+              value={formData.partyName}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              fullWidth
+              name="date"
+              type="date"
+              value={formData.date}
+              onChange={handleChange}
+              required
+              InputLabelProps={{ shrink: true }}
+            />
+            <Box>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Upload Image
+              </Typography>
+              <Button
+                variant="contained"
+                component="label"
+                sx={{
+                  backgroundColor: "black",
+                  color: "white",
+                  "&:hover": { backgroundColor: "#333" },
+                  textTransform: "none",
+                  borderRadius: 2,
+                }}
+              >
+                Choose File
+                <input
+                  type="file"
+                  name="image"
+                  accept="image/*"
+                  hidden
+                  onChange={handleChange}
+                />
+              </Button>
+              {formData.image && (
+                <Typography variant="caption" sx={{ mt: 1, display: "block" }}>
+                  Selected: {formData.image.name}
+                </Typography>
+              )}
+            </Box>
+            <TextField
+              fullWidth
+              name="vehicleNumber"
+              label="Truck/Vehicle Number (optional)"
+              value={formData.vehicleNumber}
+              onChange={handleChange}
+            />
+
+            <Button
+              onClick={handleNext}
+              fullWidth
+              variant="contained"
+              sx={{
+                backgroundColor: "black",
+                color: "white",
+                "&:hover": { backgroundColor: "#333" },
+                borderRadius: 2,
+              }}
+            >
+              Next
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

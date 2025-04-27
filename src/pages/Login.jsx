@@ -1,72 +1,109 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { auth, googleProvider } from '../firebase';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth, googleProvider } from "../firebase";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/products');
+      navigate("/products");
     } catch (err) {
-      setError('Invalid email or password');
+      setError("Invalid email or password");
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate('/products');
+      navigate("/products");
     } catch (err) {
-      setError('Google sign-in failed');
+      setError("Google sign-in failed");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        <form onSubmit={handleEmailLogin} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded"
-            required
-          />
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-          >
+    <Box
+      sx={{
+        height: "100vh",
+        backgroundColor: "black",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        
+      }}
+    >
+      <Card
+        sx={{
+          width: 360,
+          height: 440,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          px: 3,
+          borderRadius: 5
+        }}
+      >
+        <CardContent>
+          <Typography variant="h3" align="center" fontFamily={"Times New Roman"}gutterBottom>
             Login
-          </button>
-        </form>
-        <div className="text-center mt-4">
-          <p className="text-sm mb-2">or</p>
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
-          >
-            Sign in with Google
-          </button>
-        </div>
-      </div>
-    </div>
+          </Typography>
+          <form onSubmit={handleEmailLogin} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <TextField
+              fullWidth
+              label="Email"
+              variant="outlined"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Password"
+              variant="outlined"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            {error && <Typography color="error" variant="body2">{error}</Typography>}
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{ backgroundColor: "black", color: "white", "&:hover": { backgroundColor: "#333" }, borderRadius: 2 }}
+              
+            >
+              Login
+            </Button>
+          </form>
+          <Typography variant="body2" align="center" sx={{ mt: 2, color: "grey" }}>
+            -  OR  -
+          </Typography>
+          <Box mt={2}>
+            <Button
+              onClick={handleGoogleLogin}
+              fullWidth
+              variant="contained"
+              sx={{ backgroundColor: "black", color: "white", "&:hover": { backgroundColor: "#333" }, borderRadius: 2 }}
+            >
+              Sign in with Google
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }
