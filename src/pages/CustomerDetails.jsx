@@ -6,6 +6,7 @@ import CardContent from "@mui/material/CardContent";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 
 export default function CustomerDetails() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function CustomerDetails() {
     date: "",
     image: null,
     vehicleNumber: "",
+    typeOfSale: "",
   });
 
   const handleChange = (e) => {
@@ -88,6 +90,22 @@ export default function CustomerDetails() {
               onChange={handleChange}
               required
             />
+           <TextField
+  select
+  fullWidth
+  name="typeOfSale"
+  label="Type of Sale"
+  value={formData.typeOfSale}
+  onChange={handleChange}
+  required
+>
+  <MenuItem value="">Select Type</MenuItem>
+  <MenuItem value="Local">Local</MenuItem>
+  <MenuItem value="Export">Export</MenuItem>
+  <MenuItem value="Outstation">Outstation</MenuItem>
+</TextField>
+
+
             <TextField
               fullWidth
               name="date"

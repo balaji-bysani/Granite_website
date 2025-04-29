@@ -5,11 +5,22 @@ import { useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
+
 
 export default function SlabMeasurements() {
   const [measurements, setMeasurements] = useState([
-    { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft" },
+    { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "" },
   ]);
+  
 
   const [totalSum, setTotalSum] = useState(0);
   const navigate = useNavigate();
@@ -96,7 +107,8 @@ export default function SlabMeasurements() {
     if (lastRow.length !== "" && lastRow.breadth !== "") {
       setMeasurements([
         ...measurements,
-        { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft" },
+        { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "" }
+
       ]);
     }
   }, [measurements]);
@@ -117,23 +129,41 @@ export default function SlabMeasurements() {
     }
   };
 
+  const handleCopyPreviousBlockNumber = (index) => {
+    if (index === 0) return;
+    const newMeasurements = [...measurements];
+    newMeasurements[index].blockNumber = newMeasurements[index - 1].blockNumber;
+    setMeasurements(newMeasurements);
+  };
+  
+  const handleCopyPreviousRow = (index) => {
+    if (index === 0) return; // Prevent copying for the first row
+    const newMeasurements = [...measurements];
+    const previousRow = newMeasurements[index - 1];
+    newMeasurements.splice(index, 0, { ...previousRow }); // Insert a copy of the previous row at the current index
+    setMeasurements(newMeasurements);
+  };
+
+  
   return (
     <div className="p-6">
       <h2 className="text-xl font-semibold mb-4">Slab Measurements</h2>
 
-      <table className="min-w-full table-auto">
-        <thead>
-          <tr>
-            <th className="border p-2">Length</th>
-            <th className="border p-2">Breadth</th>
-            <th className="border p-2">Total</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+      <TableContainer component={Paper} className="min-w-full table-auto">
+        <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell className="border p-2">Length</TableCell>
+            <TableCell className="border p-2">Breadth</TableCell>
+            <TableCell className="border p-2">Block Number</TableCell>
+            <TableCell className="border p-2">Total</TableCell>
+            <TableCell className="border p-2">Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
           {measurements.map((measurement, index) => (
-            <tr key={index}>
-              <td className="border p-2">
+            <TableRow  key={index}>
+              <TableCell className="border p-2">
                 <input
                   type="number"
                   value={measurement.length}
@@ -151,8 +181,8 @@ export default function SlabMeasurements() {
                   <option value="ft">ft</option>
                   <option value="in">in</option>
                 </select>
-              </td>
-              <td className="border p-2">
+              </TableCell>
+              <TableCell className="border p-2">
                 <input
                   type="number"
                   value={measurement.breadth}
@@ -170,8 +200,18 @@ export default function SlabMeasurements() {
                   <option value="ft">ft</option>
                   <option value="in">in</option>
                 </select>
-              </td>
-              <td className="border p-2">
+              </TableCell>
+              <TableCell className="border p-2">
+  <input
+    type="text"
+    value={measurement.blockNumber}
+    onChange={(e) => handleChange(e, index, "blockNumber")}
+    className="w-full px-2 py-1 border rounded"
+    placeholder="Block #"
+  />
+</TableCell>
+
+              <TableCell className="border p-2">
                 <input
                   type="text"
                   value={measurement.total}
@@ -189,19 +229,42 @@ export default function SlabMeasurements() {
                   <option value="m">m²</option>
                   <option value="in">in²</option>
                 </select>
-              </td>
-              <td className="border p-2">
-                <Button
-                  onClick={() => handleDeleteRow(index)}
-                  sx={{ color: "red" }}
-                >
-                  <DeleteIcon />
-                </Button>
-              </td>
-            </tr>
+              </TableCell>
+              <div className="flex gap-2">
+  <Button
+    onClick={() => handleDeleteRow(index)}
+    sx={{ color: "red", minWidth: 0 }}
+  >
+    <DeleteIcon />
+  </Button>
+  {index > 0 && (
+  <Button
+    onClick={() => handleCopyPreviousBlockNumber(index)}
+    variant="outlined"
+    size="small"
+    sx={{ textTransform: "none", borderRadius: 2 }}
+  >
+    Copy Block
+  </Button>
+)}
+
+{index > 0 && (
+    <Button
+      onClick={() => handleCopyPreviousRow(index)}
+      variant="outlined"
+      size="small"
+      sx={{ textTransform: "none", borderRadius: 2 }}
+    >
+      Copy Row
+    </Button>
+  )}
+</div>
+
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+        </Table>
+      </TableContainer>
 
       <div className="mt-4 flex justify-between items-center">
         <strong>Total Sum: {totalSum.toFixed(2)} ft²</strong>
