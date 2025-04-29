@@ -20,9 +20,9 @@ export default function SlabMeasurements() {
   const [measurements, setMeasurements] = useState([
     { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "" },
   ]);
-  
-
   const [totalSum, setTotalSum] = useState(0);
+  const [unit, setUnit] = useState("ft");  // Store the unit for all rows
+  const [totalUnit, setTotalUnit] = useState("ft");
   const navigate = useNavigate();
 
   const convertToFeet = (value, unit) => {
@@ -65,7 +65,7 @@ export default function SlabMeasurements() {
   useEffect(() => {
     let sum = 0;
     const newMeasurements = measurements.map((measurement) => {
-      const { length, breadth, unit, totalUnit } = measurement;
+      const { length, breadth} = measurement;
       const total = calculateTotal(length, breadth, unit);
       const convertedTotal = convertTotalUnit(total, totalUnit);
       return {
@@ -81,7 +81,7 @@ export default function SlabMeasurements() {
 
     setTotalSum(sum);
     setMeasurements(newMeasurements);
-  }, [measurements]);
+  }, [measurements,unit,totalUnit]);
 
   const handleChange = (e, index, field) => {
     const newMeasurements = [...measurements];
@@ -153,10 +153,46 @@ export default function SlabMeasurements() {
         <Table>
         <TableHead>
           <TableRow>
-            <TableCell className="border p-2">Length</TableCell>
-            <TableCell className="border p-2">Breadth</TableCell>
+          <TableCell className="border p-2">
+                Length
+                <select
+                  onChange={(e) => setUnit(e.target.value)}
+                  value={unit}
+                  className="mt-1 p-1 border rounded w-full"
+                >
+                  <option value="ft">ft</option>
+                  <option value="m">m</option>
+                  <option value="cm">cm</option>
+                  <option value="in">in</option>
+                </select>
+              </TableCell>
+              <TableCell className="border p-2">
+                Breadth
+                <select
+                  onChange={(e) => setUnit(e.target.value)}
+                  value={unit}
+                  className="mt-1 p-1 border rounded w-full"
+                >
+                  <option value="ft">ft</option>
+                  <option value="m">m</option>
+                  <option value="cm">cm</option>
+                  <option value="in">in</option>
+                </select>
+              </TableCell>
             <TableCell className="border p-2">Block Number</TableCell>
-            <TableCell className="border p-2">Total</TableCell>
+            <TableCell className="border p-2">
+                Total
+                <select
+                  onChange={(e) => setTotalUnit(e.target.value)}
+                  value={totalUnit}
+                  className="mt-1 p-1 border rounded w-full"
+                >
+                  <option value="ft">ft²</option>
+                  <option value="m">m²</option>
+                  <option value="cm">cm²</option>
+                  <option value="in">in²</option>
+                </select>
+              </TableCell>
             <TableCell className="border p-2">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -171,16 +207,7 @@ export default function SlabMeasurements() {
                   className="w-full px-2 py-1 border rounded"
                   placeholder="Length"
                 />
-                <select
-                  value={measurement.unit}
-                  onChange={(e) => handleUnitChange(e, index, "unit")}
-                  className="mt-1 p-1 border rounded w-full"
-                >
-                  <option value="cm">cm</option>
-                  <option value="m">m</option>
-                  <option value="ft">ft</option>
-                  <option value="in">in</option>
-                </select>
+                
               </TableCell>
               <TableCell className="border p-2">
                 <input
@@ -190,16 +217,7 @@ export default function SlabMeasurements() {
                   className="w-full px-2 py-1 border rounded"
                   placeholder="Breadth"
                 />
-                <select
-                  value={measurement.unit}
-                  onChange={(e) => handleUnitChange(e, index, "unit")}
-                  className="mt-1 p-1 border rounded w-full"
-                >
-                  <option value="cm">cm</option>
-                  <option value="m">m</option>
-                  <option value="ft">ft</option>
-                  <option value="in">in</option>
-                </select>
+                
               </TableCell>
               <TableCell className="border p-2">
   <input
@@ -219,16 +237,7 @@ export default function SlabMeasurements() {
                   className="w-full px-2 py-1 border rounded"
                   placeholder="Total"
                 />
-                <select
-                  value={measurement.totalUnit}
-                  onChange={(e) => handleUnitChange(e, index, "totalUnit")}
-                  className="mt-1 p-1 border rounded w-full"
-                >
-                  <option value="ft">ft²</option>
-                  <option value="cm">cm²</option>
-                  <option value="m">m²</option>
-                  <option value="in">in²</option>
-                </select>
+               
               </TableCell>
               <div className="flex gap-2">
   <Button
@@ -267,8 +276,7 @@ export default function SlabMeasurements() {
       </TableContainer>
 
       <div className="mt-4 flex justify-between items-center">
-        <strong>Total Sum: {totalSum.toFixed(2)} ft²</strong>
-
+      <strong>Total Sum: {totalSum.toFixed(2)} {totalUnit}²</strong>
         <Button
           onClick={handleSave}
           variant="contained"
