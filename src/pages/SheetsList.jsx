@@ -62,9 +62,24 @@ export default function SheetsList() {
   };
 
   const handleShare = (id) => {
-    // For demo, just alert. You can integrate with actual share options.
-    alert(`Share functionality for sheet ID: ${id} (implement as needed)`);
+    const shareUrl = `${window.location.origin}/granite/view-sheet/${id}`;
+  
+    if (navigator.share) {
+      navigator
+        .share({
+          title: "Granite Sheet",
+          text: "Check out this granite sheet:",
+          url: shareUrl,
+        })
+        .then(() => console.log("Shared successfully"))
+        .catch((error) => console.error("Error sharing:", error));
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert("Link copied to clipboard!");
+      });
+    }
   };
+  
 
   const handleViewPDF = async (sheetId) => {
     try {
@@ -182,6 +197,6 @@ export default function SheetsList() {
           </TableBody>
         </Table>
       </TableContainer>
-    </Box>
+    </Box>  
   );
 }
