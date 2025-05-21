@@ -6,7 +6,6 @@ import Button from "@mui/material/Button";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
-  Button,
   Table,
   TableBody,
   TableCell,
@@ -18,10 +17,9 @@ import {
   MenuItem,
   Box,
   Typography,
-  IconButton,
   Card
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+
 
 export default function SlabMeasurements() {
   const location = useLocation();
