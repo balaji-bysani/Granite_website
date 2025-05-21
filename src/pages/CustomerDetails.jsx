@@ -7,6 +7,8 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function CustomerDetails() {
   const navigate = useNavigate();
@@ -27,9 +29,28 @@ export default function CustomerDetails() {
     });
   };
 
-  const handleNext = () => {
-    localStorage.setItem("customerDetails", JSON.stringify(formData));
-    navigate("/granite/slab-measurements");
+  const handleNext = async () => {
+    try {
+      const customerRef = await addDoc(collection(db, "Customers"), {
+        graniteName: formData.graniteName,
+        partyName: formData.partyName,
+        date: formData.date,
+        vehicleNumber: formData.vehicleNumber,
+        typeOfSale: formData.typeOfSale,
+        image: null, // Add image upload logic later if needed
+        createdAt: serverTimestamp(),
+      });
+
+      alert("Customer saved!");
+      navigate("/granite/slab-measurements", {
+        state: {
+          customerId: customerRef.id,
+        },
+      });
+    } catch (error) {
+      console.error("Error saving customer:", error);
+      alert("Failed to save customer. Please try again.");
+    }
   };
 
   return (
@@ -90,21 +111,20 @@ export default function CustomerDetails() {
               onChange={handleChange}
               required
             />
-           <TextField
-  select
-  fullWidth
-  name="typeOfSale"
-  label="Type of Sale"
-  value={formData.typeOfSale}
-  onChange={handleChange}
-  required
->
-  <MenuItem value="">Select Type</MenuItem>
-  <MenuItem value="Local">Local</MenuItem>
-  <MenuItem value="Export">Export</MenuItem>
-  <MenuItem value="Outstation">Outstation</MenuItem>
-</TextField>
-
+            <TextField
+              select
+              fullWidth
+              name="typeOfSale"
+              label="Type of Sale"
+              value={formData.typeOfSale}
+              onChange={handleChange}
+              required
+            >
+              <MenuItem value="">Select Type</MenuItem>
+              <MenuItem value="Local">Local</MenuItem>
+              <MenuItem value="Export">Export</MenuItem>
+              <MenuItem value="Outstation">Outstation</MenuItem>
+            </TextField>
 
             <TextField
               fullWidth

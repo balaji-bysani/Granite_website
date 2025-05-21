@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
 import { collection, addDoc } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Button from "@mui/material/Button";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -17,6 +17,8 @@ import {
 
 
 export default function SlabMeasurements() {
+  const location = useLocation();
+const customerId = location.state?.customerId;
   const [measurements, setMeasurements] = useState([
     { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "" },
   ]);
@@ -116,11 +118,14 @@ export default function SlabMeasurements() {
   // 🔥 SAVE to Firebase
   const handleSave = async () => {
     try {
+      // Save slab data with the customer ID reference
       await addDoc(collection(db, "sheets"), {
         measurements: measurements.filter((m) => m.length && m.breadth),
         totalSum,
         createdAt: new Date(),
+        customerId: customerId, // reference to customer
       });
+  
       alert("Sheet saved!");
       navigate("/SheetsList"); // navigate to your SheetsList page
     } catch (error) {
@@ -128,6 +133,7 @@ export default function SlabMeasurements() {
       alert("Failed to save. Please try again.");
     }
   };
+  
 
   const handleCopyPreviousBlockNumber = (index) => {
     if (index === 0) return;
