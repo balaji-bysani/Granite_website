@@ -4,7 +4,7 @@ import ProductSelection from './pages/ProductSelection';
 import CustomerDetails from './pages/CustomerDetails';
 import SlabMeasurements from './pages/SlabMeasurements';
 import SheetsList from './pages/SheetsList';
-
+import EditSheet from './pages/EditSheet';
 export default function App() {
   return (
     <Routes>
@@ -13,6 +13,8 @@ export default function App() {
       <Route path='/granite/customer-details' element={<CustomerDetails />} />
       <Route path='/granite/slab-measurements' element={<SlabMeasurements />} />
       <Route path="/granite/SheetsList" element={<SheetsList />} />
+      <Route path="/granite/edit-sheet/:id" element={<EditSheet />} />
+
     </Routes>
   );
 }

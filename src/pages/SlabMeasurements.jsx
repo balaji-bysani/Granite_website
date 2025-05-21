@@ -118,7 +118,7 @@ const customerId = location.state?.customerId;
       });
   
       alert("Sheet saved!");
-      navigate("/SheetsList");
+      navigate("/granite/SheetsList");
     } catch (error) {
       console.error("Save failed:", error);
       alert("Failed to save.");
