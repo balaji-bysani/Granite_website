@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Button from "@mui/material/Button";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select, { SelectChangeEvent } from "@mui/material/Select";
 import {
   Table,
   TableBody,
@@ -22,159 +22,153 @@ import {
 } from "@mui/material";
 
 export default function SlabMeasurements() {
-const location = useLocation();
-const customerId = location.state?.customerId;
-const [measurements, setMeasurements] = useState([
-{ length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "" },
-]);
-const [totalSum, setTotalSum] = useState(0);
-const [unit, setUnit] = useState("ft");  // Store the unit for all rows
-const [totalUnit, setTotalUnit] = useState("ft");
-const navigate = useNavigate();
-
-const convertToFeet = (value, unit) => {
-if (!value) return 0;
-switch (unit) {
-case "m":
-return value * 3.28084;
-case "in":
-return value / 12;
-case "cm":
-return value / 30.48;
-case "ft":
-return value;
-default:
-return value;
-}
-};
-
-const convertTotalUnit = (value, totalUnit) => {
-switch (totalUnit) {
-case "m":
-return value / 10.7639;
-case "cm":
-return value * 929.0304;
-case "in":
-return value * 144;
-case "ft":
-return value;
-default:
-return value;
-}
-};
-
-const calculateTotal = (length, breadth, unit) => {
-const lengthInFeet = convertToFeet(length, unit);
-const breadthInFeet = convertToFeet(breadth, unit);
-return lengthInFeet * breadthInFeet;
-};
-
-useEffect(() => {
-let sum = 0;
-const newMeasurements = measurements.map((measurement) => {
-const { length, breadth} = measurement;
-const total = calculateTotal(length, breadth, unit);
-const convertedTotal = convertTotalUnit(total, totalUnit);
-return {
-  ...measurement,
-  total: convertedTotal.toFixed(2),
-  unit: unit,
-  totalUnit: totalUnit,
-};
-
-});
-
-
-newMeasurements.forEach((measurement) => {
-  const total = parseFloat(measurement.total);
-  sum += total;
-});
-
-setTotalSum(sum);
-setMeasurements(newMeasurements);
-
-
-}, [measurements,unit,totalUnit]);
-
-const handleChange = (e, index, field) => {
-const newMeasurements = [...measurements];
-newMeasurements[index][field] = e.target.value;
-setMeasurements(newMeasurements);
-};
-
-const handleUnitChange = (e, index, field) => {
-const newMeasurements = [...measurements];
-newMeasurements[index][field] = e.target.value;
-setMeasurements(newMeasurements);
-};
-
-const handleDeleteRow = (index) => {
-const newMeasurements = [...measurements];
-newMeasurements.splice(index, 1);
-setMeasurements(newMeasurements);
-};
-
-
-const handleCopyPreviousRow = () => {
-  if (measurements.length < 2) return;
-  const previous = measurements[measurements.length - 2];
-  setMeasurements([
-    ...measurements.slice(0, -1),
-    { ...previous },
-    measurements[measurements.length - 1],
-  ]);
-};
-
-
-// Auto add new row
-useEffect(() => {
-const lastRow = measurements[measurements.length - 1];
-if (lastRow.length !== "" && lastRow.breadth !== "") {
-setMeasurements([
-...measurements,
-{ length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "" }
+  const location = useLocation();
+  const customerId = location.state?.customerId;
+  const [measurements, setMeasurements] = useState([
+    { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "", category: "" }
 
   ]);
-}
+  const [totalSum, setTotalSum] = useState(0);
+  const [unit, setUnit] = useState("ft"); // Store the unit for all rows
+  const [totalUnit, setTotalUnit] = useState("ft");
+  const navigate = useNavigate();
 
+  const convertToFeet = (value, unit) => {
+    if (!value) return 0;
+    switch (unit) {
+      case "m":
+        return value * 3.28084;
+      case "in":
+        return value / 12;
+      case "cm":
+        return value / 30.48;
+      case "ft":
+        return value;
+      default:
+        return value;
+    }
+  };
 
-},[measurements]);
+  const convertTotalUnit = (value, totalUnit) => {
+    switch (totalUnit) {
+      case "m":
+        return value / 10.7639;
+      case "cm":
+        return value * 929.0304;
+      case "in":
+        return value * 144;
+      case "ft":
+        return value;
+      default:
+        return value;
+    }
+  };
 
-// 🔥 SAVE to Firebase
-const handleSave = async () => {
-try {
-// Save slab data with the customer ID reference
-await addDoc(collection(db, "sheets"), {
-measurements: measurements.filter((m) => m.length && m.breadth),
-totalSum,
-createdAt: new Date(),
-customerId: customerId, // reference to customer
-});
+  const calculateTotal = (length, breadth, unit) => {
+    const lengthInFeet = convertToFeet(length, unit);
+    const breadthInFeet = convertToFeet(breadth, unit);
+    return lengthInFeet * breadthInFeet;
+  };
 
+  useEffect(() => {
+    let sum = 0;
+    const newMeasurements = measurements.map((measurement) => {
+      const { length, breadth } = measurement;
+      const total = calculateTotal(length, breadth, unit);
+      const convertedTotal = convertTotalUnit(total, totalUnit);
+      return {
+        ...measurement,
+        total: convertedTotal.toFixed(2),
+        unit: unit,
+        totalUnit: totalUnit,
+      };
+    });
 
-  alert("Sheet saved!");
-  navigate("/granite/SheetsList"); // navigate to your SheetsList page
-} catch (error) {
-  console.error("Error saving sheet:", error);
-  alert("Failed to save. Please try again.");
-}
+    newMeasurements.forEach((measurement) => {
+      const total = parseFloat(measurement.total);
+      sum += total;
+    });
 
-};
+    setTotalSum(sum);
+    setMeasurements(newMeasurements);
+  }, [measurements, unit, totalUnit]);
 
-const handleCopyPreviousBlock = () => {
-  if (measurements.length < 2) return;
-  const newList = [...measurements];
-  for (let i = 1; i < newList.length; i++) {
-    newList[i].blockNumber = newList[i - 1].blockNumber;
-  }
-  setMeasurements(newList);
-};
+  const handleChange = (e, index, field) => {
+    const newMeasurements = [...measurements];
+    newMeasurements[index][field] = e.target.value;
+    setMeasurements(newMeasurements);
+  };
 
+  const handleUnitChange = (e, index, field) => {
+    const newMeasurements = [...measurements];
+    newMeasurements[index][field] = e.target.value;
+    setMeasurements(newMeasurements);
+  };
 
+  const handleDeleteRow = (index) => {
+    const newMeasurements = [...measurements];
+    newMeasurements.splice(index, 1);
+    setMeasurements(newMeasurements);
+  };
 
-return (
-  
-  <Box sx={{ padding: 4, backgroundColor: "black", minHeight: "100vh" }}>
+  const handleCopyPreviousRow = () => {
+    if (measurements.length < 2) return;
+    const previous = measurements[measurements.length - 2];
+    setMeasurements([
+      ...measurements.slice(0, -1),
+      { ...previous },
+      measurements[measurements.length - 1],
+    ]);
+  };
+
+  // Auto add new row
+  useEffect(() => {
+    const lastRow = measurements[measurements.length - 1];
+    if (lastRow.length !== "" && lastRow.breadth !== "") {
+      setMeasurements([
+        ...measurements,
+        {
+          length: "",
+          breadth: "",
+          total: "",
+          unit: "ft",
+          totalUnit: "ft",
+          blockNumber: "",
+        },
+      ]);
+    }
+  }, [measurements]);
+
+  // 🔥 SAVE to Firebase
+  const handleSave = async () => {
+    try {
+      // Save slab data with the customer ID reference
+      await addDoc(collection(db, "sheets"), {
+        measurements: measurements.filter((m) => m.length && m.breadth),
+        totalSum,
+        createdAt: new Date(),
+        customerId: customerId, // reference to customer
+      });
+
+      alert("Sheet saved!");
+      navigate("/granite/SheetsList"); // navigate to your SheetsList page
+    } catch (error) {
+      console.error("Error saving sheet:", error);
+      alert("Failed to save. Please try again.");
+    }
+  };
+
+  const handleCopyPreviousBlock = () => {
+    if (measurements.length < 2) return;
+    const newList = [...measurements];
+    for (let i = 1; i < newList.length; i++) {
+      newList[i].blockNumber = newList[i - 1].blockNumber;
+    }
+    setMeasurements(newList);
+  };
+
+  return (
+    <Box sx={{ padding: 4, backgroundColor: "black", minHeight: "100vh" }}>
       <Card
         sx={{
           padding: 4,
@@ -191,8 +185,7 @@ return (
         >
           Slab Measurements
         </Typography>
-  
-  
+
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <TextField
             select
@@ -222,7 +215,6 @@ return (
             ))}
           </TextField>
         </Box>
-
 
         <TableContainer component={Paper}>
           <Table>
@@ -267,7 +259,8 @@ return (
                   </TableCell>
                   <TableCell>
                     <Select
-                      value={m.category}
+                      value={m.category || ""}
+                      onChange={(e) => handleChange(e, i, "category")}
                       size="small"
                     >
                       <MenuItem value={"F"}>Fresh</MenuItem>
@@ -332,6 +325,5 @@ return (
         </Box>
       </Card>
     </Box>
-
-);
+  );
 }

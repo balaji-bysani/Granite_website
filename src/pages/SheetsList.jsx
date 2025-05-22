@@ -82,6 +82,7 @@ const handleShare = (id) => {
   };
   
 
+  
   const handleViewPDF = async (sheetId) => {
     try {
       const sheetRef = doc(db, "sheets", sheetId);
@@ -94,6 +95,20 @@ const handleShare = (id) => {
 
       const sheetData = sheetSnap.data();
       const { measurements = [], totalSum = 0, customerId, createdAt } = sheetData;
+      const CATEGORY_MAP = {
+        F: "Fresh",
+        LD: "Light Defect",
+        D: "Defect",
+        S: "Small"
+      };
+
+      const categoryTotals = {};
+      measurements.forEach(({ category, total }) => {
+        if (!categoryTotals[category]) categoryTotals[category] = 0;
+        categoryTotals[category] += total || 0;
+      });
+  
+      const firstMeasurement = measurements[0] || {};
 
       // Fetch customer details if available
       const customer = customers[customerId] || {};
@@ -123,19 +138,34 @@ const handleShare = (id) => {
           "Block Number",
           `Length (${measurements[0]?.unit || ""})`,
           `Breadth (${measurements[0]?.unit || ""})`,
+          "Category",
           `Total (sq${measurements[0]?.totalUnit || ""})`
         ]],
         body: measurements.map((m) => [
           m.blockNumber,
           m.length,
           m.breadth,
+          CATEGORY_MAP[m.category] || "-",
           m.total
         ]),
+        
       });
       
+       let y = docPDF.lastAutoTable.finalY + 10;
 
-      docPDF.text(`Total Sum: ${totalSum}  sq${measurements[0]?.totalUnit || ""}`, 14, docPDF.lastAutoTable.finalY + 10);
+      docPDF.text(`Total Sum: ${totalSum}  sq${measurements[0]?.totalUnit || ""}`, 14, y);
+      y+=8;
+      Object.entries(CATEGORY_MAP).forEach(([key, label]) => {
+        const catTotal = Number(categoryTotals[key]) || 0;
 
+        docPDF.text(
+          `${label} Total: ${catTotal.toFixed(2)} sq${firstMeasurement.totalUnit || ""}`,
+          14,
+          y
+        );
+        y += 8;
+      });
+    
       docPDF.save("granite-sheet.pdf");
     } catch (error) {
       console.error("Error generating PDF:", error);
