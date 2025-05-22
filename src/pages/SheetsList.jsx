@@ -119,17 +119,20 @@ const handleShare = (id) => {
       // Table of measurements
       autoTable(docPDF, {
         startY: 50,
-        head: [["Length", "Breadth", "Unit", "Total", "Total Unit"]],
+        head: [[
+          `Length (${measurements[0]?.unit || ""})`,
+          `Breadth (${measurements[0]?.unit || ""})`,
+          `Total (sq${measurements[0]?.totalUnit || ""})`
+        ]],
         body: measurements.map((m) => [
-          `${m.length} ${m.unit || ""}`,
-          `${m.breadth} ${m.unit || ""}`,
-          m.unit || "",
-          `${m.total} ${m.totalUnit || ""}`,
-          m.totalUnit || "",
+          m.length,
+          m.breadth,
+          m.total
         ]),
       });
+      
 
-      docPDF.text(`Total Sum: ${totalSum}`, 14, docPDF.lastAutoTable.finalY + 10);
+      docPDF.text(`Total Sum: ${totalSum}  sq${measurements[0]?.totalUnit || ""}`, 14, docPDF.lastAutoTable.finalY + 10);
 
       docPDF.save("granite-sheet.pdf");
     } catch (error) {
