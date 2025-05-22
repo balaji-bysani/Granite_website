@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Button from "@mui/material/Button";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 import {
   Table,
   TableBody,
@@ -17,13 +18,12 @@ import {
   MenuItem,
   Box,
   Typography,
-  Card
+  Card,
 } from "@mui/material";
-
 
 export default function SlabMeasurements() {
   const location = useLocation();
-const customerId = location.state?.customerId;
+  const customerId = location.state?.customerId;
   const [measurements, setMeasurements] = useState([
     { blockNumber: "", length: "", breadth: "", total: "" },
   ]);
@@ -35,19 +35,27 @@ const customerId = location.state?.customerId;
   const convertToFeet = (value, unit) => {
     if (!value) return 0;
     switch (unit) {
-      case "m": return value * 3.28084;
-      case "in": return value / 12;
-      case "cm": return value / 30.48;
-      default: return value;
+      case "m":
+        return value * 3.28084;
+      case "in":
+        return value / 12;
+      case "cm":
+        return value / 30.48;
+      default:
+        return value;
     }
   };
 
   const convertTotalUnit = (value, unit) => {
     switch (unit) {
-      case "m": return value / 10.7639;
-      case "cm": return value * 929.0304;
-      case "in": return value * 144;
-      default: return value;
+      case "m":
+        return value / 10.7639;
+      case "cm":
+        return value * 929.0304;
+      case "in":
+        return value * 144;
+      default:
+        return value;
     }
   };
 
@@ -72,7 +80,10 @@ const customerId = location.state?.customerId;
   useEffect(() => {
     const last = measurements[measurements.length - 1];
     if (last.length !== "" && last.breadth !== "") {
-      setMeasurements([...measurements, { blockNumber: "", length: "", breadth: "", total: "" }]);
+      setMeasurements([
+        ...measurements,
+        { blockNumber: "", length: "", breadth: "", total: "" },
+      ]);
     }
   }, [measurements]);
 
@@ -111,12 +122,12 @@ const customerId = location.state?.customerId;
     try {
       // Save slab data with the customer ID reference
       await addDoc(collection(db, "sheets"), {
-        measurements: measurements.filter(m => m.length && m.breadth),
+        measurements: measurements.filter((m) => m.length && m.breadth),
         totalSum,
         createdAt: new Date(),
         customerId: customerId, // reference to customer
       });
-  
+
       alert("Sheet saved!");
       navigate("/granite/SheetsList");
     } catch (error) {
@@ -124,12 +135,23 @@ const customerId = location.state?.customerId;
       alert("Failed to save.");
     }
   };
-  
 
   return (
     <Box sx={{ padding: 4, backgroundColor: "black", minHeight: "100vh" }}>
-      <Card sx={{ padding: 4, backgroundColor: "white", borderRadius: 4, boxShadow: 6 }}>
-        <Typography variant="h4" gutterBottom align="center" fontFamily="Times New Roman">
+      <Card
+        sx={{
+          padding: 4,
+          backgroundColor: "white",
+          borderRadius: 4,
+          boxShadow: 6,
+        }}
+      >
+        <Typography
+          variant="h4"
+          gutterBottom
+          align="center"
+          fontFamily="Times New Roman"
+        >
           Slab Measurements
         </Typography>
 
@@ -140,10 +162,11 @@ const customerId = location.state?.customerId;
             value={unit}
             onChange={(e) => setUnit(e.target.value)}
             sx={{ width: "50%" }}
-            
           >
             {["ft", "m", "cm", "in"].map((u) => (
-              <MenuItem key={u} value={u}>{u}</MenuItem>
+              <MenuItem key={u} value={u}>
+                {u}
+              </MenuItem>
             ))}
           </TextField>
 
@@ -155,7 +178,9 @@ const customerId = location.state?.customerId;
             sx={{ width: "50%" }}
           >
             {["ft", "m", "cm", "in"].map((u) => (
-              <MenuItem key={u} value={u}>{u}²</MenuItem>
+              <MenuItem key={u} value={u}>
+                {u}²
+              </MenuItem>
             ))}
           </TextField>
         </Box>
@@ -163,12 +188,13 @@ const customerId = location.state?.customerId;
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell>Block #</TableCell>
-                <TableCell>Length</TableCell>
-                <TableCell>Breadth</TableCell>
-                <TableCell>Total</TableCell>
-                <TableCell>Actions</TableCell>
+              <TableRow sx={{ backgroundColor: "black" }}>
+                <TableCell sx={{ color: "white" }}>Block #</TableCell>
+                <TableCell sx={{ color: "white" }}>Length</TableCell>
+                <TableCell sx={{ color: "white" }}>Breadth</TableCell>
+                <TableCell sx={{ color: "white" }}>Category</TableCell>
+                <TableCell sx={{ color: "white" }}>Total</TableCell>
+                <TableCell sx={{ color: "white" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -201,14 +227,24 @@ const customerId = location.state?.customerId;
                     />
                   </TableCell>
                   <TableCell>
-                    <TextField
-                      value={m.total}
+                    <Select
+                      value={m.category}
                       size="small"
-                      disabled
-                    />
+                    >
+                      <MenuItem value={"F"}>Fresh</MenuItem>
+                      <MenuItem value={"LD"}>Light Defect</MenuItem>
+                      <MenuItem value={"D"}>Defect</MenuItem>
+                      <MenuItem value={"S"}>Small</MenuItem>
+                    </Select>
                   </TableCell>
                   <TableCell>
-                    <IconButton onClick={() => handleDeleteRow(i)} sx={{ color: "red" }}>
+                    <TextField value={m.total} size="small" disabled />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton
+                      onClick={() => handleDeleteRow(i)}
+                      sx={{ color: "red" }}
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
@@ -219,19 +255,39 @@ const customerId = location.state?.customerId;
         </TableContainer>
 
         <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-          <Button onClick={handleCopyPreviousBlock} variant="filled" sx={{ backgroundColor: "black", color: "white", borderRadius: 2 }}>
+          <Button
+            onClick={handleCopyPreviousBlock}
+            variant="filled"
+            sx={{ backgroundColor: "black", color: "white", borderRadius: 2 }}
+          >
             Copy Previous Block
           </Button>
-          <Button onClick={handleCopyPreviousRow} variant="filled" sx={{ backgroundColor: "black", color: "white", borderRadius: 2 }}>
+          <Button
+            onClick={handleCopyPreviousRow}
+            variant="filled"
+            sx={{ backgroundColor: "black", color: "white", borderRadius: 2 }}
+          >
             Copy Previous Row
           </Button>
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: 3,
+          }}
+        >
           <Typography variant="h6">
             Total Sum: {totalSum.toFixed(2)} {totalUnit}²
           </Typography>
-          <Button onClick={handleSave} variant="contained" color="success" sx={{ borderRadius: 2, width: "1440%" }}>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            color="success"
+            sx={{ borderRadius: 2, width: "14%" }}
+          >
             Save
           </Button>
         </Box>
