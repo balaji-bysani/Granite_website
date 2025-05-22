@@ -22,122 +22,159 @@ import {
 } from "@mui/material";
 
 export default function SlabMeasurements() {
-  const location = useLocation();
-  const customerId = location.state?.customerId;
-  const [measurements, setMeasurements] = useState([
-    { blockNumber: "", length: "", breadth: "", total: "" },
+const location = useLocation();
+const customerId = location.state?.customerId;
+const [measurements, setMeasurements] = useState([
+{ length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "" },
+]);
+const [totalSum, setTotalSum] = useState(0);
+const [unit, setUnit] = useState("ft");  // Store the unit for all rows
+const [totalUnit, setTotalUnit] = useState("ft");
+const navigate = useNavigate();
+
+const convertToFeet = (value, unit) => {
+if (!value) return 0;
+switch (unit) {
+case "m":
+return value * 3.28084;
+case "in":
+return value / 12;
+case "cm":
+return value / 30.48;
+case "ft":
+return value;
+default:
+return value;
+}
+};
+
+const convertTotalUnit = (value, totalUnit) => {
+switch (totalUnit) {
+case "m":
+return value / 10.7639;
+case "cm":
+return value * 929.0304;
+case "in":
+return value * 144;
+case "ft":
+return value;
+default:
+return value;
+}
+};
+
+const calculateTotal = (length, breadth, unit) => {
+const lengthInFeet = convertToFeet(length, unit);
+const breadthInFeet = convertToFeet(breadth, unit);
+return lengthInFeet * breadthInFeet;
+};
+
+useEffect(() => {
+let sum = 0;
+const newMeasurements = measurements.map((measurement) => {
+const { length, breadth} = measurement;
+const total = calculateTotal(length, breadth, unit);
+const convertedTotal = convertTotalUnit(total, totalUnit);
+return {
+  ...measurement,
+  total: convertedTotal.toFixed(2),
+  unit: unit,
+  totalUnit: totalUnit,
+};
+
+});
+
+
+newMeasurements.forEach((measurement) => {
+  const total = parseFloat(measurement.total);
+  sum += total;
+});
+
+setTotalSum(sum);
+setMeasurements(newMeasurements);
+
+
+}, [measurements,unit,totalUnit]);
+
+const handleChange = (e, index, field) => {
+const newMeasurements = [...measurements];
+newMeasurements[index][field] = e.target.value;
+setMeasurements(newMeasurements);
+};
+
+const handleUnitChange = (e, index, field) => {
+const newMeasurements = [...measurements];
+newMeasurements[index][field] = e.target.value;
+setMeasurements(newMeasurements);
+};
+
+const handleDeleteRow = (index) => {
+const newMeasurements = [...measurements];
+newMeasurements.splice(index, 1);
+setMeasurements(newMeasurements);
+};
+
+
+const handleCopyPreviousRow = () => {
+  if (measurements.length < 2) return;
+  const previous = measurements[measurements.length - 2];
+  setMeasurements([
+    ...measurements.slice(0, -1),
+    { ...previous },
+    measurements[measurements.length - 1],
   ]);
-  const [totalSum, setTotalSum] = useState(0);
-  const [unit, setUnit] = useState("ft");
-  const [totalUnit, setTotalUnit] = useState("ft");
-  const navigate = useNavigate();
+};
 
-  const convertToFeet = (value, unit) => {
-    if (!value) return 0;
-    switch (unit) {
-      case "m":
-        return value * 3.28084;
-      case "in":
-        return value / 12;
-      case "cm":
-        return value / 30.48;
-      default:
-        return value;
-    }
-  };
 
-  const convertTotalUnit = (value, unit) => {
-    switch (unit) {
-      case "m":
-        return value / 10.7639;
-      case "cm":
-        return value * 929.0304;
-      case "in":
-        return value * 144;
-      default:
-        return value;
-    }
-  };
+// Auto add new row
+useEffect(() => {
+const lastRow = measurements[measurements.length - 1];
+if (lastRow.length !== "" && lastRow.breadth !== "") {
+setMeasurements([
+...measurements,
+{ length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "" }
 
-  const calculateTotal = (length, breadth, unit) => {
-    const l = convertToFeet(length, unit);
-    const b = convertToFeet(breadth, unit);
-    return l * b;
-  };
+  ]);
+}
 
-  useEffect(() => {
-    let sum = 0;
-    const updated = measurements.map((m) => {
-      const total = calculateTotal(m.length, m.breadth, unit);
-      const converted = convertTotalUnit(total, totalUnit);
-      sum += converted;
-      return { ...m, total: converted.toFixed(2) };
-    });
-    setMeasurements(updated);
-    setTotalSum(sum);
-  }, [measurements.length, unit, totalUnit]);
 
-  useEffect(() => {
-    const last = measurements[measurements.length - 1];
-    if (last.length !== "" && last.breadth !== "") {
-      setMeasurements([
-        ...measurements,
-        { blockNumber: "", length: "", breadth: "", total: "" },
-      ]);
-    }
-  }, [measurements]);
+},[measurements]);
 
-  const handleChange = (e, index, field) => {
-    const newList = [...measurements];
-    newList[index][field] = e.target.value;
-    setMeasurements(newList);
-  };
+// 🔥 SAVE to Firebase
+const handleSave = async () => {
+try {
+// Save slab data with the customer ID reference
+await addDoc(collection(db, "sheets"), {
+measurements: measurements.filter((m) => m.length && m.breadth),
+totalSum,
+createdAt: new Date(),
+customerId: customerId, // reference to customer
+});
 
-  const handleDeleteRow = (index) => {
-    const list = [...measurements];
-    list.splice(index, 1);
-    setMeasurements(list);
-  };
 
-  const handleCopyPreviousBlock = () => {
-    if (measurements.length < 2) return;
-    const newList = [...measurements];
-    for (let i = 1; i < newList.length; i++) {
-      newList[i].blockNumber = newList[i - 1].blockNumber;
-    }
-    setMeasurements(newList);
-  };
+  alert("Sheet saved!");
+  navigate("/granite/SheetsList"); // navigate to your SheetsList page
+} catch (error) {
+  console.error("Error saving sheet:", error);
+  alert("Failed to save. Please try again.");
+}
 
-  const handleCopyPreviousRow = () => {
-    if (measurements.length < 2) return;
-    const previous = measurements[measurements.length - 2];
-    setMeasurements([
-      ...measurements.slice(0, -1),
-      { ...previous },
-      measurements[measurements.length - 1],
-    ]);
-  };
+};
 
-  const handleSave = async () => {
-    try {
-      // Save slab data with the customer ID reference
-      await addDoc(collection(db, "sheets"), {
-        measurements: measurements.filter((m) => m.length && m.breadth),
-        totalSum,
-        createdAt: new Date(),
-        customerId: customerId, // reference to customer
-      });
+const handleCopyPreviousBlock = () => {
+  if (measurements.length < 2) return;
+  const newList = [...measurements];
+  for (let i = 1; i < newList.length; i++) {
+    newList[i].blockNumber = newList[i - 1].blockNumber;
+  }
+  setMeasurements(newList);
+};
 
-      alert("Sheet saved!");
-      navigate("/granite/SheetsList");
-    } catch (error) {
-      console.error("Save failed:", error);
-      alert("Failed to save.");
-    }
-  };
 
-  return (
-    <Box sx={{ padding: 4, backgroundColor: "black", minHeight: "100vh" }}>
+
+return (
+  
+  <Box sx={{ padding: 4, backgroundColor: "black", minHeight: "100vh" }}>
       <Card
         sx={{
           padding: 4,
@@ -154,7 +191,8 @@ export default function SlabMeasurements() {
         >
           Slab Measurements
         </Typography>
-
+  
+  
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <TextField
             select
@@ -184,6 +222,7 @@ export default function SlabMeasurements() {
             ))}
           </TextField>
         </Box>
+
 
         <TableContainer component={Paper}>
           <Table>
@@ -293,5 +332,6 @@ export default function SlabMeasurements() {
         </Box>
       </Card>
     </Box>
-  );
+
+);
 }
