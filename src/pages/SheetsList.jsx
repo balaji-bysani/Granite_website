@@ -120,11 +120,13 @@ const handleShare = (id) => {
       autoTable(docPDF, {
         startY: 50,
         head: [[
+          "Block Number",
           `Length (${measurements[0]?.unit || ""})`,
           `Breadth (${measurements[0]?.unit || ""})`,
           `Total (sq${measurements[0]?.totalUnit || ""})`
         ]],
         body: measurements.map((m) => [
+          m.blockNumber,
           m.length,
           m.breadth,
           m.total
