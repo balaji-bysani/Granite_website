@@ -19,6 +19,13 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import { Card } from "@mui/material";
+import { IconButton } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import ShareIcon from "@mui/icons-material/Share";
+import AddIcon from "@mui/icons-material/Add";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -61,10 +68,9 @@ export default function SheetsList() {
     navigate(`/granite/edit-sheet/${id}`);
   };
 
-  
-const handleShare = (id) => {
+  const handleShare = (id) => {
     const shareUrl = `${window.location.origin}/granite/view-sheet/${id}`;
-  
+
     if (navigator.share) {
       navigator
         .share({
@@ -80,9 +86,7 @@ const handleShare = (id) => {
       });
     }
   };
-  
 
-  
   const handleViewPDF = async (sheetId) => {
     try {
       const sheetRef = doc(db, "sheets", sheetId);
@@ -94,12 +98,17 @@ const handleShare = (id) => {
       }
 
       const sheetData = sheetSnap.data();
-      const { measurements = [], totalSum = 0, customerId, createdAt } = sheetData;
+      const {
+        measurements = [],
+        totalSum = 0,
+        customerId,
+        createdAt,
+      } = sheetData;
       const CATEGORY_MAP = {
-        F: "Fresh",
-        LD: "Light Defect",
-        D: "Defect",
-        S: "Small"
+        F: "F",
+        LD: "LD",
+        D: "D",
+        S: "S",
       };
 
       const categoryTotals = {};
@@ -107,7 +116,7 @@ const handleShare = (id) => {
         if (!categoryTotals[category]) categoryTotals[category] = 0;
         categoryTotals[category] += total || 0;
       });
-  
+
       const firstMeasurement = measurements[0] || {};
 
       // Fetch customer details if available
@@ -123,9 +132,7 @@ const handleShare = (id) => {
       docPDF.text(`Granite Name: ${customer.graniteName || "N/A"}`, 14, 36);
       docPDF.text(
         `Date: ${
-          createdAt?.toDate
-            ? createdAt.toDate().toLocaleDateString()
-            : "N/A"
+          createdAt?.toDate ? createdAt.toDate().toLocaleDateString() : "N/A"
         }`,
         14,
         42
@@ -134,38 +141,45 @@ const handleShare = (id) => {
       // Table of measurements
       autoTable(docPDF, {
         startY: 50,
-        head: [[
-          "Block Number",
-          `Length (${measurements[0]?.unit || ""})`,
-          `Breadth (${measurements[0]?.unit || ""})`,
-          "Category",
-          `Total (sq${measurements[0]?.totalUnit || ""})`
-        ]],
+        head: [
+          [
+            "Block Number",
+            `Length (${measurements[0]?.unit || ""})`,
+            `Breadth (${measurements[0]?.unit || ""})`,
+            "Category",
+            `Total (sq${measurements[0]?.totalUnit || ""})`,
+          ],
+        ],
         body: measurements.map((m) => [
           m.blockNumber,
           m.length,
           m.breadth,
           CATEGORY_MAP[m.category] || "-",
-          m.total
+          m.total,
         ]),
-        
       });
-      
-       let y = docPDF.lastAutoTable.finalY + 10;
 
-      docPDF.text(`Total Sum: ${totalSum}  sq${measurements[0]?.totalUnit || ""}`, 14, y);
-      y+=8;
+      let y = docPDF.lastAutoTable.finalY + 10;
+
+      docPDF.text(
+        `Total Sum: ${totalSum}  sq${measurements[0]?.totalUnit || ""}`,
+        14,
+        y
+      );
+      y += 8;
       Object.entries(CATEGORY_MAP).forEach(([key, label]) => {
         const catTotal = Number(categoryTotals[key]) || 0;
 
         docPDF.text(
-          `${label} Total: ${catTotal.toFixed(2)} sq${firstMeasurement.totalUnit || ""}`,
+          `${label} Total: ${catTotal.toFixed(2)} sq${
+            firstMeasurement.totalUnit || ""
+          }`,
           14,
           y
         );
         y += 8;
       });
-    
+
       docPDF.save("granite-sheet.pdf");
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -174,65 +188,105 @@ const handleShare = (id) => {
   };
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f0f0f0", minHeight: "100vh" }}>
-      <Typography variant="h4" gutterBottom>
-        Granite Sheets List
-      </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead sx={{ backgroundColor: "#1976d2" }}>
-            <TableRow>
-              <TableCell sx={{ color: "white" }}>Customer</TableCell>
-              <TableCell sx={{ color: "white" }}>Product</TableCell>
-              <TableCell sx={{ color: "white" }}>Date</TableCell>
-              <TableCell sx={{ color: "white" }}>Total</TableCell>
-              <TableCell sx={{ color: "white" }}>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {sheets.map((sheet) => {
-              const customer = customers[sheet.customerId] || {};
-              const dateStr = sheet.createdAt?.toDate
-                ? sheet.createdAt.toDate().toLocaleDateString()
-                : "N/A";
+    <Box sx={{ p: 4, backgroundColor: "black", minHeight: "100vh" }}>
+      <Card
+        sx={{
+          padding: 4,
+          backgroundColor: "white",
+          borderRadius: 4,
+          boxShadow: 6,
+          display: "flex",
+          flexDirection: "column",
+          gap: 2
+        }}
+      >
+        <Typography
+          variant="h4"
+          gutterBottom
+          align="center"
+          fontFamily="Times New Roman"
+        >
+          Granite Sheets List
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead sx={{ backgroundColor: "black" }}>
+              <TableRow>
+                <TableCell sx={{ color: "white" }}>Customer</TableCell>
+                <TableCell sx={{ color: "white" }}>Product</TableCell>
+                <TableCell sx={{ color: "white" }}>Date</TableCell>
+                <TableCell sx={{ color: "white" }}>Total</TableCell>
+                <TableCell sx={{ color: "white" }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sheets.map((sheet) => {
+                const customer = customers[sheet.customerId] || {};
+                const dateStr = sheet.createdAt?.toDate
+                  ? sheet.createdAt.toDate().toLocaleDateString()
+                  : "N/A";
 
-              return (
-                <TableRow key={sheet.id}>
-                  <TableCell>{customer.partyName || "N/A"}</TableCell>
-                  <TableCell>{customer.graniteName || "N/A"}</TableCell>
-                  <TableCell>{dateStr}</TableCell>
-                  <TableCell>{sheet.totalSum || "0"}</TableCell>
-                  <TableCell>
-                    <Button size="small" onClick={() => handleEdit(sheet.id)}>
-                      Edit
-                    </Button>
-                    <Button size="small" onClick={() => handleShare(sheet.id)}>
-                      Share
-                    </Button>
-                    <Button size="small" onClick={() => handleViewPDF(sheet.id)}>
-                      View PDF
-                    </Button>
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() => handleDelete(sheet.id)}
-                    >
-                      Delete
-                    </Button>
+                return (
+                  <TableRow key={sheet.id}>
+                    <TableCell>{customer.partyName || "N/A"}</TableCell>
+                    <TableCell>{customer.graniteName || "N/A"}</TableCell>
+                    <TableCell>{dateStr}</TableCell>
+                    <TableCell>{sheet.totalSum || "0"}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleEdit(sheet.id)}
+                        sx={{ color: "black" }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+
+                      <IconButton
+                        onClick={() => handleShare(sheet.id)}
+                        sx={{ color: "black" }}
+                      >
+                        <ShareIcon />
+                      </IconButton>
+
+                      <IconButton
+                        onClick={() => handleViewPDF(sheet.id)}
+                        sx={{ color: "black" }}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(sheet.id)}
+                        sx={{ color: "red" }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {sheets.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    No sheets found.
                   </TableCell>
                 </TableRow>
-              );
-            })}
-            {sheets.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} align="center">
-                  No sheets found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <IconButton
+          onClick={() => navigate("/granite/customer-details")}
+          sx={{
+            backgroundColor: "black",
+            color: "white",
+            marginTop: "auto",
+            width: "3%",
+            height: "3%",
+            marginLeft: "auto",
+          }}
+        >
+          <AddIcon />
+        </IconButton>
+      </Card>
     </Box>
   );
 }

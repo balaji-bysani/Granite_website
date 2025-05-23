@@ -263,10 +263,10 @@ export default function SlabMeasurements() {
                       onChange={(e) => handleChange(e, i, "category")}
                       size="small"
                     >
-                      <MenuItem value={"F"}>Fresh</MenuItem>
-                      <MenuItem value={"LD"}>Light Defect</MenuItem>
-                      <MenuItem value={"D"}>Defect</MenuItem>
-                      <MenuItem value={"S"}>Small</MenuItem>
+                      <MenuItem value={"F"}>F</MenuItem>
+                      <MenuItem value={"LD"}>LD</MenuItem>
+                      <MenuItem value={"D"}>D</MenuItem>
+                      <MenuItem value={"S"}>S</MenuItem>
                     </Select>
                   </TableCell>
                   <TableCell>

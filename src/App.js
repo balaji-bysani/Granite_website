@@ -8,8 +8,9 @@ import EditSheet from "./pages/EditSheet";
 import Header from "./pages/Header";
 export default function App() {
   return (
-    <div>
+    <div display="flex" flexDirection="column" gap="3" height="100vh">
       <Header />
+
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/products" element={<ProductSelection />} />

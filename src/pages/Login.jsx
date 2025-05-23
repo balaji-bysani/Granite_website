@@ -19,7 +19,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/products");
+      navigate("/granite/SheetsList");
     } catch (err) {
       setError("Invalid email or password");
     }
@@ -28,7 +28,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate("/products");
+      navigate("/granite/SheetsList");
     } catch (err) {
       setError("Google sign-in failed");
     }
@@ -42,7 +42,6 @@ export default function Login() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        
       }}
     >
       <Card
