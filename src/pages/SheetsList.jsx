@@ -113,8 +113,10 @@ export default function SheetsList() {
 
       const categoryTotals = {};
       measurements.forEach(({ category, total }) => {
-        if (!categoryTotals[category]) categoryTotals[category] = 0;
-        categoryTotals[category] += total || 0;
+        const safeCategory = category || "Unknown";
+        const numericTotal = parseFloat(total) || 0;
+        if (!categoryTotals[safeCategory]) categoryTotals[safeCategory] = 0;
+        categoryTotals[safeCategory] += numericTotal;
       });
 
       const firstMeasurement = measurements[0] || {};

@@ -12,6 +12,7 @@ import {
   Paper,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
 
 const unitOptions = ["ft", "m", "in"];
 
@@ -20,6 +21,7 @@ export default function EditSheet() {
   const navigate = useNavigate();
   const [measurements, setMeasurements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState("");
 
   useEffect(() => {
     const loadSheet = async () => {
@@ -29,6 +31,7 @@ export default function EditSheet() {
         if (sheetSnap.exists()) {
           const data = sheetSnap.data();
           setMeasurements(data.measurements || []);
+          setCategory(data.category || "");
         } else {
           alert("Sheet not found.");
           navigate("/granite/sheets-list");
@@ -44,31 +47,65 @@ export default function EditSheet() {
     loadSheet();
   }, [id, navigate]);
 
+  const unitToMeters = {
+    ft: 0.3048,
+    m: 1,
+    in: 0.0254,
+  };
+  
   const handleChange = (index, field, value) => {
     setMeasurements((prev) => {
       const updated = [...prev];
       const row = { ...updated[index], [field]: value };
-
-      const length = parseFloat(row.length);
-      const breadth = parseFloat(row.breadth);
-
-      if (!isNaN(length) && !isNaN(breadth)) {
-        row.total = (length * breadth).toFixed(2);
-      } else {
-        row.total = "";
+  
+      if (["length", "breadth", "unit", "totalUnit"].includes(field)) {
+        // Parse length and breadth
+        const lengthVal = parseFloat(field === "length" ? value : row.length);
+        const breadthVal = parseFloat(field === "breadth" ? value : row.breadth);
+  
+        // Units for length/breadth and total
+        const lengthBreadthUnit = field === "unit" ? value : row.unit;
+        const totalUnit = field === "totalUnit" ? value : row.totalUnit;
+  
+        if (!isNaN(lengthVal) && !isNaN(breadthVal)) {
+          // Convert length & breadth to meters
+          const lengthInMeters = lengthVal * unitToMeters[lengthBreadthUnit];
+          const breadthInMeters = breadthVal * unitToMeters[lengthBreadthUnit];
+  
+          // Calculate area in square meters
+          const areaInMetersSquared = lengthInMeters * breadthInMeters;
+  
+          // Convert area from m² to desired total unit squared
+          const conversionFactor = unitToMeters[totalUnit];
+          const areaInTotalUnit = areaInMetersSquared / (conversionFactor * conversionFactor);
+  
+          row.total = areaInTotalUnit.toFixed(2);
+        } else {
+          row.total = "";
+        }
       }
-
+  
       updated[index] = row;
       return updated;
     });
   };
+  
+  
 
   const addRow = () => {
     setMeasurements((prev) => [
       ...prev,
-      { length: "", breadth: "", unit: "ft", total: "", totalUnit: "ft" },
+      {
+        length: "",
+        breadth: "",
+        unit: "ft",
+        total: "",
+        totalUnit: "ft",
+        category: "F", // default value
+      },
     ]);
   };
+  
 
   const deleteRow = (index) => {
     setMeasurements((prev) => prev.filter((_, i) => i !== index));
@@ -84,6 +121,7 @@ export default function EditSheet() {
       await updateDoc(doc(db, "sheets", id), {
         measurements,
         totalSum,
+        category,
       });
 
       alert("Sheet updated successfully!");
@@ -116,6 +154,21 @@ export default function EditSheet() {
             backgroundColor: "#fff",
           }}
         >
+     
+
+     <Select
+  select
+  label="Category"
+  value={row.category || ""}
+  onChange={(e) => handleChange(index, "category", e.target.value)}
+  size="small"
+>
+  <MenuItem value="F">Fresh</MenuItem>
+  <MenuItem value="LD">Light Defect</MenuItem>
+  <MenuItem value="D">Defect</MenuItem>
+  <MenuItem value="S">Small</MenuItem>
+</Select>
+
           <TextField
             label="Length"
             type="number"
