@@ -65,7 +65,7 @@ export default function SheetsList() {
   };
 
   const handleEdit = (id) => {
-    navigate(`/granite/edit-sheet/${id}`);
+    navigate(`/Granite_website/granite/edit-sheet/${id}`);
   };
 
   const handleShare = (id) => {
@@ -183,12 +183,120 @@ export default function SheetsList() {
       });
 
       docPDF.save("granite-sheet.pdf");
+      if ((customer.typeOfSale || "").toLowerCase() === "export") {
+        const adjustedMeasurements = measurements.map((m) => {
+          const lengthInches = convertToInches(m.length, m.unit);
+          const breadthInches = convertToInches(m.breadth, m.unit);
+      
+          const adjLength = Math.max(lengthInches - 3, 0);
+          const adjBreadth = Math.max(breadthInches - 2, 0);
+      
+          const newLength = convertFromInches(adjLength, m.unit);
+          const newBreadth = convertFromInches(adjBreadth, m.unit);
+      
+          // Total in sq.ft (length and breadth in inches /12 to get feet)
+          const newTotal = (adjLength / 12) * (adjBreadth / 12);
+      
+          return {
+            ...m,
+            length: newLength.toFixed(2),
+            breadth: newBreadth.toFixed(2),
+            total: newTotal.toFixed(2),
+          };
+        });
+      
+        // Calculate adjusted total sum
+        const adjustedTotalSum = adjustedMeasurements.reduce(
+          (acc, curr) => acc + parseFloat(curr.total || 0),
+          0
+        );
+      
+        const docPDF2 = new jsPDF();
+        docPDF2.setFontSize(18);
+        docPDF2.text("Adjusted Granite Sheet for Export", 14, 20);
+      
+        docPDF2.setFontSize(12);
+        docPDF2.text(`Customer: ${customer.partyName || "N/A"}`, 14, 30);
+        docPDF2.text(`Granite Name: ${customer.graniteName || "N/A"}`, 14, 36);
+        docPDF2.text(
+          `Date: ${
+            createdAt?.toDate ? createdAt.toDate().toLocaleDateString() : "N/A"
+          }`,
+          14,
+          42
+        );
+      
+        autoTable(docPDF2, {
+          startY: 50,
+          head: [
+            [
+              
+              `Length (${measurements[0]?.unit || ""})`,
+              `Breadth (${measurements[0]?.unit || ""})`,
+              "Category",
+              `Total (sq${measurements[0]?.totalUnit || ""})`,
+            ],
+          ],
+          body: adjustedMeasurements.map((m) => [
+           
+            m.length,
+            m.breadth,
+            CATEGORY_MAP[m.category] || "-",
+            m.total,
+          ]),
+        });
+      
+        // Add adjusted total sum below the table
+        let y = docPDF2.lastAutoTable.finalY + 10;
+        docPDF2.text(
+          `Adjusted Total Sum: ${adjustedTotalSum.toFixed(2)} sq${
+            measurements[0]?.totalUnit || ""
+          }`,
+          14,
+          y
+        );
+      
+        docPDF2.save("adjusted-export-granite-sheet.pdf");
+      }
+      
+      
+      
+      
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF.");
     }
   };
 
+  const convertToInches = (value, unit) => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return 0;
+    switch (unit.toLowerCase()) {
+      case "ft":
+        return num * 12;
+      case "m":
+        return num * 39.3701;
+      case "in":
+        return num;
+      default:
+        return num;
+    }
+  };
+  
+  const convertFromInches = (inches, unit) => {
+    switch (unit.toLowerCase()) {
+      case "ft":
+        return inches / 12;
+      case "m":
+        return inches / 39.3701;
+      case "in":
+        return inches
+      default:
+        return inches;
+    }
+  };
+  
+  
   return (
     <Box sx={{ p: 4, backgroundColor: "black", minHeight: "100vh" }}>
       <Card
@@ -216,6 +324,7 @@ export default function SheetsList() {
               <TableRow>
                 <TableCell sx={{ color: "white" }}>Customer</TableCell>
                 <TableCell sx={{ color: "white" }}>Product</TableCell>
+                <TableCell sx={{ color: "white" }}>Type of Sale</TableCell>
                 <TableCell sx={{ color: "white" }}>Date</TableCell>
                 <TableCell sx={{ color: "white" }}>Total</TableCell>
                 <TableCell sx={{ color: "white" }}>Actions</TableCell>
@@ -232,7 +341,8 @@ export default function SheetsList() {
                   <TableRow key={sheet.id}>
                     <TableCell>{customer.partyName || "N/A"}</TableCell>
                     <TableCell>{customer.graniteName || "N/A"}</TableCell>
-                    <TableCell>{dateStr}</TableCell>
+                    <TableCell>{customer.typeOfSale || "N/A"}</TableCell>
+                    <TableCell>{customer.date || dateStr}</TableCell>
                     <TableCell>{sheet.totalSum || "0"}</TableCell>
                     <TableCell>
                       <IconButton
@@ -276,7 +386,7 @@ export default function SheetsList() {
           </Table>
         </TableContainer>
         <IconButton
-          onClick={() => navigate("/granite/customer-details")}
+          onClick={() => navigate("/Granite_website/granite/customer-details")}
           sx={{
             backgroundColor: "black",
             color: "white",

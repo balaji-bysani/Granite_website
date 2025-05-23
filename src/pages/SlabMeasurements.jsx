@@ -151,7 +151,7 @@ export default function SlabMeasurements() {
       });
 
       alert("Sheet saved!");
-      navigate("/granite/SheetsList"); // navigate to your SheetsList page
+      navigate("/Granite_website/granite/SheetsList"); // navigate to your SheetsList page
     } catch (error) {
       console.error("Error saving sheet:", error);
       alert("Failed to save. Please try again.");

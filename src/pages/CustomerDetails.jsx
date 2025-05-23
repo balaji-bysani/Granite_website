@@ -42,7 +42,7 @@ export default function CustomerDetails() {
       });
 
       alert("Customer saved!");
-      navigate("/granite/slab-measurements", {
+      navigate("/Granite_website/granite/slab-measurements", {
         state: {
           customerId: customerRef.id,
         },
