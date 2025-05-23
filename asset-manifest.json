@@ -1,19 +1,19 @@
 {
   "files": {
     "main.css": "/Granite_website/static/css/main.44a7a823.css",
-    "main.js": "/Granite_website/static/js/main.ca9680f2.js",
+    "main.js": "/Granite_website/static/js/main.86dcdb93.js",
     "static/js/239.73850b33.chunk.js": "/Granite_website/static/js/239.73850b33.chunk.js",
     "static/js/977.58670ecd.chunk.js": "/Granite_website/static/js/977.58670ecd.chunk.js",
     "static/js/732.d14b0a20.chunk.js": "/Granite_website/static/js/732.d14b0a20.chunk.js",
     "index.html": "/Granite_website/index.html",
     "main.44a7a823.css.map": "/Granite_website/static/css/main.44a7a823.css.map",
-    "main.ca9680f2.js.map": "/Granite_website/static/js/main.ca9680f2.js.map",
+    "main.86dcdb93.js.map": "/Granite_website/static/js/main.86dcdb93.js.map",
     "239.73850b33.chunk.js.map": "/Granite_website/static/js/239.73850b33.chunk.js.map",
     "977.58670ecd.chunk.js.map": "/Granite_website/static/js/977.58670ecd.chunk.js.map",
     "732.d14b0a20.chunk.js.map": "/Granite_website/static/js/732.d14b0a20.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.44a7a823.css",
-    "static/js/main.ca9680f2.js"
+    "static/js/main.86dcdb93.js"
   ]
 }
