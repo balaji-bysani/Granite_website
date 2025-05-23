@@ -148,6 +148,7 @@ export default function SlabMeasurements() {
         totalSum,
         createdAt: new Date(),
         customerId: customerId, // reference to customer
+        
       });
 
       alert("Sheet saved!");

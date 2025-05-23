@@ -34,7 +34,7 @@ export default function EditSheet() {
           setCategory(data.category || "");
         } else {
           alert("Sheet not found.");
-          navigate("/granite/sheets-list");
+          navigate("/Granite_website/granite/SheetsList");
         }
       } catch (error) {
         console.error("Failed to fetch sheet:", error);
@@ -121,11 +121,11 @@ export default function EditSheet() {
       await updateDoc(doc(db, "sheets", id), {
         measurements,
         totalSum,
-        category,
+        category
       });
 
       alert("Sheet updated successfully!");
-      navigate("/granite/SheetsList");
+      navigate("/Granite_website/granite/SheetsList");
     } catch (error) {
       console.error("Update failed:", error);
       alert("Failed to save sheet.");
@@ -234,7 +234,7 @@ export default function EditSheet() {
         >
           Save
         </Button>
-        <Button variant="text" onClick={() => navigate("/granite/SheetsList")}>
+        <Button variant="text" onClick={() => navigate("/Granite_website/granite/SheetsList")}>
           Cancel
         </Button>
       </Box>

@@ -42,7 +42,7 @@ export default function ProductSelection() {
           </Typography>
           <Box mt={2}>
             <Button
-              onClick={() => navigate("/granite/customer-details")}
+              onClick={() => navigate("/Granite_website/granite/customer-details")}
               fullWidth
               variant="contained"
               sx={{
