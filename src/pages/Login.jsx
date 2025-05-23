@@ -19,7 +19,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/granite/SheetsList");
+      navigate("/Granite_website/granite/SheetsList");
     } catch (err) {
       setError("Invalid email or password");
     }
@@ -28,7 +28,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate("/granite/SheetsList");
+      navigate("/Granite_website/granite/SheetsList");
     } catch (err) {
       setError("Google sign-in failed");
     }

@@ -12,15 +12,15 @@ export default function App() {
       <Header />
 
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/products" element={<ProductSelection />} />
-        <Route path="/granite/customer-details" element={<CustomerDetails />} />
+        <Route path="/Granite_website" element={<Login />} />
+        <Route path="/Granite_website/products" element={<ProductSelection />} />
+        <Route path="/Granite_website/granite/customer-details" element={<CustomerDetails />} />
         <Route
-          path="/granite/slab-measurements"
+          path="/Granite_website/granite/slab-measurements"
           element={<SlabMeasurements />}
         />
-        <Route path="/granite/SheetsList" element={<SheetsList />} />
-        <Route path="/granite/edit-sheet/:id" element={<EditSheet />} />
+        <Route path="/Granite_website/granite/SheetsList" element={<SheetsList />} />
+        <Route path="/Granite_website/granite/edit-sheet/:id" element={<EditSheet />} />
       </Routes>
     </div>
   );
