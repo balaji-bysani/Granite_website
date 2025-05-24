@@ -25,7 +25,7 @@ const DrawerComponent = () => {
     if (path === "/logout") {
       // Add your logout logic here (clear auth, redirect to login, etc.)
       console.log("Logging out...");
-      navigate("/"); // Or wherever your login page is
+      navigate("/Granite_website"); // Or wherever your login page is
     } else {
       navigate(path);
     }

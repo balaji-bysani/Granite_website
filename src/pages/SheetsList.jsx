@@ -87,188 +87,203 @@ export default function SheetsList() {
     }
   };
 
-  const handleViewPDF = async (sheetId) => {
-    try {
-      const sheetRef = doc(db, "sheets", sheetId);
-      const sheetSnap = await getDoc(sheetRef);
+ const handleViewPDF = async (sheetId) => {
+  try {
+    const sheetRef = doc(db, "sheets", sheetId);
+    const sheetSnap = await getDoc(sheetRef);
 
-      if (!sheetSnap.exists()) {
-        alert("Sheet not found.");
-        return;
-      }
+    if (!sheetSnap.exists()) {
+      alert("Sheet not found.");
+      return;
+    }
 
-      const sheetData = sheetSnap.data();
-      const {
-        measurements = [],
-        totalSum = 0,
-        customerId,
-        createdAt,
-      } = sheetData;
-      const CATEGORY_MAP = {
-        F: "F",
-        LD: "LD",
-        D: "D",
-        S: "S",
-      };
+    const sheetData = sheetSnap.data();
+    const {
+      measurements = [],
+      totalSum = 0,
+      customerId,
+      createdAt,
+    } = sheetData;
 
-      const categoryTotals = {};
-      measurements.forEach(({ category, total }) => {
-        const safeCategory = category || "Unknown";
-        const numericTotal = parseFloat(total) || 0;
-        if (!categoryTotals[safeCategory]) categoryTotals[safeCategory] = 0;
-        categoryTotals[safeCategory] += numericTotal;
-      });
+    const CATEGORY_MAP = {
+      F: "F",
+      LD: "LD",
+      D: "D",
+      S: "S",
+    };
 
-      const firstMeasurement = measurements[0] || {};
+    const categoryTotals = {};
+    measurements.forEach(({ category, total }) => {
+      const safeCategory = category || "Unknown";
+      const numericTotal = parseFloat(total) || 0;
+      if (!categoryTotals[safeCategory]) categoryTotals[safeCategory] = 0;
+      categoryTotals[safeCategory] += numericTotal;
+    });
 
-      // Fetch customer details if available
-      const customer = customers[customerId] || {};
+    const firstMeasurement = measurements[0] || {};
+    const customer = customers[customerId] || {};
 
-      const docPDF = new jsPDF();
-      docPDF.setFontSize(18);
-      docPDF.text("Granite Sheet Summary", 14, 20);
+    const docPDF = new jsPDF();
+    const pageWidth = docPDF.internal.pageSize.getWidth();
 
-      // Customer and sheet info
-      docPDF.setFontSize(12);
-      docPDF.text(`Customer: ${customer.partyName || "N/A"}`, 14, 30);
-      docPDF.text(`Granite Name: ${customer.graniteName || "N/A"}`, 14, 36);
-      docPDF.text(
-        `Date: ${
-          createdAt?.toDate ? createdAt.toDate().toLocaleDateString() : "N/A"
-        }`,
-        14,
-        42
-      );
+    // Title
+    docPDF.setFontSize(20);
+    docPDF.setFont("helvetica", "bold");
+    docPDF.text("Jaya Balaji Industries", pageWidth / 2, 20, { align: "center" });
 
-      // Table of measurements
-      autoTable(docPDF, {
-        startY: 50,
-        head: [
-          [
-            "Slab Number",
-            "Block Number",
-            `Length (${measurements[0]?.unit || ""})`,
-            `Breadth (${measurements[0]?.unit || ""})`,
-            "Category",
-            `Total (sq${measurements[0]?.totalUnit || ""})`,
-          ],
+    // Subtitle
+    docPDF.setFontSize(14);
+    docPDF.setFont("helvetica", "normal");
+    docPDF.text("Measurement Sheet", pageWidth / 2, 28, { align: "center" });
+
+    // Date (right-aligned)
+    docPDF.setFontSize(10);
+    const formattedDate = createdAt?.toDate
+      ? createdAt.toDate().toLocaleDateString()
+      : "N/A";
+    docPDF.text(`Date: ${formattedDate}`, pageWidth - 14, 28, { align: "right" });
+
+    // Customer Info
+    docPDF.setFontSize(12);
+    docPDF.text(`Customer: ${customer.partyName || "N/A"}`, 14, 38);
+    docPDF.text(`Granite Name: ${customer.graniteName || "N/A"}`, 14, 44);
+
+    // Table
+    autoTable(docPDF, {
+      startY: 52,
+      head: [
+        [
+          "Slab Number",
+          "Block Number",
+          `Length (${measurements[0]?.unit || ""})`,
+          `Breadth (${measurements[0]?.unit || ""})`,
+          "Category",
+          `Total (sq${measurements[0]?.totalUnit || ""})`,
         ],
-        body: measurements.map((m) => [
-          m.slabNumber|| "-",
-          m.blockNumber,
-          m.length,
-          m.breadth,
-          CATEGORY_MAP[m.category] || "-",
-          m.total,
-        ]),
-      });
+      ],
+      body: measurements.map((m) => [
+        m.slabNumber || "-",
+        m.blockNumber,
+        m.length,
+        m.breadth,
+        CATEGORY_MAP[m.category] || "-",
+        m.total,
+      ]),
+    });
 
-      let y = docPDF.lastAutoTable.finalY + 10;
+    let y = docPDF.lastAutoTable.finalY + 10;
 
+    docPDF.text(
+      `Total Sum: ${totalSum}  sq${measurements[0]?.totalUnit || ""}`,
+      14,
+      y
+    );
+    y += 8;
+    Object.entries(CATEGORY_MAP).forEach(([key, label]) => {
+      const catTotal = Number(categoryTotals[key]) || 0;
       docPDF.text(
-        `Total Sum: ${totalSum}  sq${measurements[0]?.totalUnit || ""}`,
+        `${label} Total: ${catTotal.toFixed(2)} sq${firstMeasurement.totalUnit || ""}`,
         14,
         y
       );
       y += 8;
-      Object.entries(CATEGORY_MAP).forEach(([key, label]) => {
-        const catTotal = Number(categoryTotals[key]) || 0;
+    });
 
-        docPDF.text(
-          `${label} Total: ${catTotal.toFixed(2)} sq${
-            firstMeasurement.totalUnit || ""
-          }`,
-          14,
-          y
-        );
-        y += 8;
+    docPDF.save(`${formattedDate} - ${customer.partyName || "N/A"}.pdf`);
+
+    // Export PDF for export customers with adjusted measurements
+    if ((customer.typeOfSale || "").toLowerCase() === "export") {
+      const adjustedMeasurements = measurements.map((m) => {
+        const lengthInches = convertToInches(m.length, m.unit);
+        const breadthInches = convertToInches(m.breadth, m.unit);
+
+        const adjLength = Math.max(lengthInches - 3, 0);
+        const adjBreadth = Math.max(breadthInches - 2, 0);
+
+        const newLength = convertFromInches(adjLength, m.unit);
+        const newBreadth = convertFromInches(adjBreadth, m.unit);
+
+        const newTotal = (adjLength / 12) * (adjBreadth / 12);
+
+        return {
+          ...m,
+          originalLength: m.length,
+          originalBreadth: m.breadth,
+          originalTotal: m.total,
+          adjustedLength: newLength.toFixed(2),
+          adjustedBreadth: newBreadth.toFixed(2),
+          adjustedTotal: newTotal.toFixed(2),
+        };
       });
 
-      docPDF.save("granite-sheet.pdf");
-      if ((customer.typeOfSale || "").toLowerCase() === "export") {
-        const adjustedMeasurements = measurements.map((m) => {
-          const lengthInches = convertToInches(m.length, m.unit);
-          const breadthInches = convertToInches(m.breadth, m.unit);
-      
-          const adjLength = Math.max(lengthInches - 3, 0);
-          const adjBreadth = Math.max(breadthInches - 2, 0);
-      
-          const newLength = convertFromInches(adjLength, m.unit);
-          const newBreadth = convertFromInches(adjBreadth, m.unit);
-      
-          // Total in sq.ft (length and breadth in inches /12 to get feet)
-          const newTotal = (adjLength / 12) * (adjBreadth / 12);
-      
-          return {
-            ...m,
-            length: newLength.toFixed(2),
-            breadth: newBreadth.toFixed(2),
-            total: newTotal.toFixed(2),
-          };
-        });
-      
-        // Calculate adjusted total sum
-        const adjustedTotalSum = adjustedMeasurements.reduce(
-          (acc, curr) => acc + parseFloat(curr.total || 0),
-          0
-        );
-      
-        const docPDF2 = new jsPDF();
-        docPDF2.setFontSize(18);
-        docPDF2.text("Adjusted Granite Sheet for Export", 14, 20);
-      
-        docPDF2.setFontSize(12);
-        docPDF2.text(`Customer: ${customer.partyName || "N/A"}`, 14, 30);
-        docPDF2.text(`Granite Name: ${customer.graniteName || "N/A"}`, 14, 36);
-        docPDF2.text(
-          `Date: ${
-            createdAt?.toDate ? createdAt.toDate().toLocaleDateString() : "N/A"
-          }`,
-          14,
-          42
-        );
-      
-        autoTable(docPDF2, {
-          startY: 50,
-          head: [
-            [
-              
-              `Length (${measurements[0]?.unit || ""})`,
-              `Breadth (${measurements[0]?.unit || ""})`,
-              "Category",
-              `Total (sq${measurements[0]?.totalUnit || ""})`,
-            ],
+      const adjustedTotalSum = adjustedMeasurements.reduce(
+        (acc, curr) => acc + parseFloat(curr.adjustedTotal || 0),
+        0
+      );
+
+      const docPDF2 = new jsPDF();
+      const pageWidth2 = docPDF2.internal.pageSize.getWidth();
+
+      docPDF2.setFontSize(20);
+      docPDF2.setFont("helvetica", "bold");
+      docPDF2.text("Jaya Balaji Industries", pageWidth2 / 2, 20, { align: "center" });
+
+      docPDF2.setFontSize(14);
+      docPDF2.setFont("helvetica", "normal");
+      docPDF2.text("Adjusted Measurement Sheet", pageWidth2 / 2, 28, { align: "center" });
+
+      docPDF2.setFontSize(10);
+      docPDF2.text(`Date: ${formattedDate}`, pageWidth2 - 14, 28, { align: "right" });
+
+      docPDF2.setFontSize(12);
+      docPDF2.text(`Customer: ${customer.partyName || "N/A"}`, 14, 38);
+      docPDF2.text(`Granite Name: ${customer.graniteName || "N/A"}`, 14, 44);
+
+      autoTable(docPDF2, {
+        startY: 52,
+        head: [
+          [
+            "Slab Number",
+            `Net Length (${measurements[0]?.unit || ""})`,
+            `Net Breadth (${measurements[0]?.unit || ""})`,
+            `Net msmt (sq${measurements[0]?.totalUnit || ""})`,
+            `Gross Length (${measurements[0]?.unit || ""})`,
+            `Gross Breadth (${measurements[0]?.unit || ""})`,
+            `Gross msmt (sq${measurements[0]?.totalUnit || ""})`,
           ],
-          body: adjustedMeasurements.map((m) => [
-           
-            m.length,
-            m.breadth,
-            CATEGORY_MAP[m.category] || "-",
-            m.total,
-          ]),
-        });
-      
-        // Add adjusted total sum below the table
-        let y = docPDF2.lastAutoTable.finalY + 10;
-        docPDF2.text(
-          `Adjusted Total Sum: ${adjustedTotalSum.toFixed(2)} sq${
-            measurements[0]?.totalUnit || ""
-          }`,
-          14,
-          y
-        );
-      
-        docPDF2.save("adjusted-export-granite-sheet.pdf");
-      }
-      
-      
-      
-      
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF.");
+        ],
+        body: adjustedMeasurements.map((m) => [
+          m.slabNumber || "-",
+          m.originalLength,
+          m.originalBreadth,
+          
+          m.originalTotal,
+          m.adjustedLength,
+          m.adjustedBreadth,
+          m.adjustedTotal,
+        ]),
+      });
+
+      let y2 = docPDF2.lastAutoTable.finalY + 10;
+      docPDF2.text(
+      `Net Total Sum: ${totalSum}  sq${measurements[0]?.totalUnit || ""}`,
+      14,
+      y2
+    );
+      docPDF2.text(
+        `Gross Total Sum: ${adjustedTotalSum.toFixed(2)} sq${measurements[0]?.totalUnit || ""}`,
+        14,
+        y2+6
+      );
+
+      docPDF2.save(`Detailed ${formattedDate} - ${customer.partyName || "N/A"}.pdf`);
     }
-  };
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    alert("Failed to generate PDF.");
+  }
+};
+
 
   const convertToInches = (value, unit) => {
     const num = parseFloat(value);
@@ -284,7 +299,7 @@ export default function SheetsList() {
         return num;
     }
   };
-  
+
   const convertFromInches = (inches, unit) => {
     switch (unit.toLowerCase()) {
       case "ft":
@@ -292,13 +307,12 @@ export default function SheetsList() {
       case "m":
         return inches / 39.3701;
       case "in":
-        return inches
+        return inches;
       default:
         return inches;
     }
   };
-  
-  
+
   return (
     <Box sx={{ p: 4, backgroundColor: "black", minHeight: "100vh" }}>
       <Card
@@ -309,7 +323,7 @@ export default function SheetsList() {
           boxShadow: 6,
           display: "flex",
           flexDirection: "column",
-          gap: 2
+          gap: 2,
         }}
       >
         <Typography
