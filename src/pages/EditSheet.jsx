@@ -92,19 +92,29 @@ export default function EditSheet() {
   
   
 
-  const addRow = () => {
-    setMeasurements((prev) => [
+const addRow = () => {
+  setMeasurements((prev) => {
+    // Get the max existing slabNumber (assuming numbers)
+    const existingNumbers = prev.map(row => parseInt(row.slabNumber)).filter(n => !isNaN(n));
+    const nextSlabNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+
+    return [
       ...prev,
       {
+        slabNumber: nextSlabNumber.toString(),
+        blockNumber:"",
         length: "",
         breadth: "",
         unit: "ft",
         total: "",
         totalUnit: "ft",
-        category: "F", // default value
-      },
-    ]);
-  };
+        category: "F",
+      }
+    ];
+  });
+};
+
+
   
 
   const deleteRow = (index) => {
@@ -154,7 +164,23 @@ export default function EditSheet() {
             backgroundColor: "#fff",
           }}
         >
-     
+     <TextField
+  label="Slab Number"
+  value={row.slabNumber || ""}
+  onChange={(e) => handleChange(index, "slabNumber", e.target.value)}
+  size="small"
+/>
+
+<TextField
+  label="Block Number"
+  type="text"
+  value={row.blockNumber || ""}
+  onChange={(e) => handleChange(index, "blockNumber", e.target.value)}
+  size="small"
+  sx={{ width: 140 }}
+/>
+
+
 
      <Select
   select

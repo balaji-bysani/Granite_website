@@ -25,9 +25,10 @@ export default function SlabMeasurements() {
   const location = useLocation();
   const customerId = location.state?.customerId;
   const [measurements, setMeasurements] = useState([
-    { length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "", category: "" }
+  { slabNumber: 1, length: "", breadth: "", total: "", unit: "ft", totalUnit: "ft", blockNumber: "", category: "" }
+]);
 
-  ]);
+
   const [totalSum, setTotalSum] = useState(0);
   const [unit, setUnit] = useState("ft"); // Store the unit for all rows
   const [totalUnit, setTotalUnit] = useState("ft");
@@ -106,10 +107,15 @@ export default function SlabMeasurements() {
   };
 
   const handleDeleteRow = (index) => {
-    const newMeasurements = [...measurements];
-    newMeasurements.splice(index, 1);
-    setMeasurements(newMeasurements);
-  };
+  const newMeasurements = measurements.filter((_, i) => i !== index);
+  // Reassign slab numbers
+  const updatedMeasurements = newMeasurements.map((m, idx) => ({
+    ...m,
+    slabNumber: idx + 1
+  }));
+  setMeasurements(updatedMeasurements);
+};
+
 
   const handleCopyPreviousRow = () => {
     if (measurements.length < 2) return;
@@ -122,22 +128,25 @@ export default function SlabMeasurements() {
   };
 
   // Auto add new row
-  useEffect(() => {
-    const lastRow = measurements[measurements.length - 1];
-    if (lastRow.length !== "" && lastRow.breadth !== "") {
-      setMeasurements([
-        ...measurements,
-        {
-          length: "",
-          breadth: "",
-          total: "",
-          unit: "ft",
-          totalUnit: "ft",
-          blockNumber: "",
-        },
-      ]);
-    }
-  }, [measurements]);
+useEffect(() => {
+  const lastRow = measurements[measurements.length - 1];
+  if (lastRow.length !== "" && lastRow.breadth !== "") {
+    setMeasurements([
+      ...measurements,
+      {
+        slabNumber: measurements.length + 1, // ✅ Assign serial number
+        length: "",
+        breadth: "",
+        total: "",
+        unit: "ft",
+        totalUnit: "ft",
+        blockNumber: "",
+        category: ""
+      },
+    ]);
+  }
+}, [measurements]);
+
 
   // 🔥 SAVE to Firebase
   const handleSave = async () => {
@@ -221,6 +230,7 @@ export default function SlabMeasurements() {
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: "black" }}>
+              <TableCell sx={{ color: "white" }}>Slab #</TableCell>
                 <TableCell sx={{ color: "white" }}>Block #</TableCell>
                 <TableCell sx={{ color: "white" }}>Length</TableCell>
                 <TableCell sx={{ color: "white" }}>Breadth</TableCell>
@@ -232,6 +242,9 @@ export default function SlabMeasurements() {
             <TableBody>
               {measurements.map((m, i) => (
                 <TableRow key={i}>
+                  <TableCell>
+  <TextField value={m.slabNumber} size="small" disabled />
+</TableCell>
                   <TableCell>
                     <TextField
                       value={m.blockNumber}

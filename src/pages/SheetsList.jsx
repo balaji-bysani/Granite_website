@@ -145,6 +145,7 @@ export default function SheetsList() {
         startY: 50,
         head: [
           [
+            "Slab Number",
             "Block Number",
             `Length (${measurements[0]?.unit || ""})`,
             `Breadth (${measurements[0]?.unit || ""})`,
@@ -153,6 +154,7 @@ export default function SheetsList() {
           ],
         ],
         body: measurements.map((m) => [
+          m.slabNumber|| "-",
           m.blockNumber,
           m.length,
           m.breadth,
